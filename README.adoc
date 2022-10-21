@@ -1,0 +1,71 @@
+:toc:
+:icons: font
+:source-highlighter: prettify
+:project_id: demo-spring-boot-kotlin-jpa
+:tabsize: 2
+
+= Application support
+
+Une application starter basée sur les guides suivants
+
+* https://spring.io/guides/tutorials/spring-boot-kotlin/
+* https://spring.io/guides/gs/accessing-data-mysql/
+
+Une lecture de ces ressources est vivement recommandée.
+
+
+== Prérequis
+
+* Premiers pas réussis en Kotlin
+* Une machine opérationnelle (test de l'application https://github.com/ldv-melun/sbfirst)
+* Avoir réalisé les exercices https://ldv-melun.github.io/sio-slam/sio-component/index-spring-boot.html#_travaux_pratiques_le_contr%C3%B4leur_et_la_vue_initiation[Exercices avec Controleur et Vue]
+
+== Les dépendances
+
+* Maven
+* Spring Boot Starter
+* Thymeleaf
+* Mysql
+* Webjars
+* BootStrap
+
+Basé sur le thème (qu'il faudra personnaliser) : https://getbootstrap.com/docs/5.2/examples/navbar-static/
+
+== Avant de commencer
+
+=== Initialiser la base de données en ligne de commande
+
+Après avoir lancé la commande `mysql` (une application qui se connecte par défaut au serveur mysql de la machine), vous créez une base de données, qui sera exploitée par l'application, ainsi qu'un utilisateur `mysql`.
+
+Dans un second temps, vous (en tant qu'administrateur de bases de données) donnez les droits à l'utilisateur sur la base de données de l'application.
+
+[source, mysql]
+----
+mysql> create database db_example; -- Creates the new database
+mysql> create user 'springuser'@'%' identified by 'ThePassword'; -- Creates the user
+mysql> grant all on db_example.* to 'springuser'@'%'; -- Gives all privileges to the new user on the newly created database
+----
+
+=== À faire ultérieurement (sécurité)
+
+En mode production, limiter les droits de l'utilisateur `mysql` sur la base de données de l'application.
+
+[source, sql]
+----
+mysql> revoke all on db_example.* from 'springuser'@'%';
+mysql> grant select, insert, delete, update on db_example.* to 'springuser'@'%';
+----
+
+Voir ici : https://spring.io/guides/gs/accessing-data-mysql/ chapitre, "_Make Some Security Changes_"
+
+
+== Travaux pratiques
+
+* Modifier la barre de navigation afin de ne montrer que les commandes suivantes :  `Articles`, `Auteurs`, `À Propos`
+
+* Faire en sorte que la commande `Auteurs` présente la liste des auteurs, avec un lien vers l'ajout d'un nouvel auteur. Prévoir une nouvelle classe contrôleur, nommée `UserController`.
+
+* Permettre à l'utilisateur de créer un auteur (prévoir un formulaire). Attention, le login d'un utilisateur doit être unique (clé candidate). La soumission du formulaire de création se fera par la commande HTTP `POST`.
+
+* Sur la page d'index des articles, ajouter, à la fiche d'un article, un lien permettant à l'utilisateur de visualiser le détail de cet article (tous ses champs). Prévoir une nouvelle méthode contrôleur dans la classe `ArticleController`, et une vue associée.
+
