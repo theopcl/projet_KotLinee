@@ -65,6 +65,8 @@ Voir ici : https://spring.io/guides/gs/accessing-data-mysql/ chapitre, "_Make So
 
 * Faire en sorte que la commande `Auteurs` présente la liste des auteurs, avec un lien vers l'ajout d'un nouvel auteur. Prévoir une nouvelle classe contrôleur, nommée `UserController`.
 
+* Faire en sorte que la liste des articles soit présentées par ordre FIFO.
+
 * Permettre à l'utilisateur de créer un auteur (prévoir un formulaire). Attention, le login d'un utilisateur doit être unique (clé candidate). La soumission du formulaire de création se fera par la commande HTTP `POST`.
 
 * Sur la page d'index des articles, ajouter, à la fiche d'un article, un lien permettant à l'utilisateur de visualiser le détail de cet article (tous ses champs). Prévoir une nouvelle méthode contrôleur dans la classe `ArticleController`, et une vue associée.
