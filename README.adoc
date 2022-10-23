@@ -58,6 +58,12 @@ mysql> grant select, insert, delete, update on db_example.* to 'springuser'@'%';
 
 Voir ici : https://spring.io/guides/gs/accessing-data-mysql/ chapitre, "_Make Some Security Changes_"
 
+== Prise en main
+
+Après avoir cloné l'application, et avant de lancer l'application, vérifier la conformité du contenu de `src/main/resources/application-local.properties`.
+
+Prendre connaissance de l'impact `spring.jpa.hibernate.ddl-auto=*create*` sur la base de données, et, en particulier, consulter le code de la méthode  `databaseInitializer()` de la classe `DatabaseInitializer`.
+
 
 == Travaux pratiques
 
