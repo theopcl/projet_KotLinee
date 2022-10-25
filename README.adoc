@@ -62,8 +62,83 @@ Voir ici : https://spring.io/guides/gs/accessing-data-mysql/ chapitre, "_Make So
 
 Après avoir cloné l'application, et avant de lancer l'application, vérifier la conformité du contenu de `src/main/resources/application-local.properties`.
 
-Prendre connaissance de l'impact `spring.jpa.hibernate.ddl-auto=*create*` sur la base de données, et, en particulier, consulter le code de la méthode  `databaseInitializer()` de la classe `DatabaseInitializer`.
+Prendre connaissance de l'impact `spring.jpa.hibernate.ddl-auto=*create-drop*` sur la base de données (puis changer par *update*), et, en particulier, consulter le corps de la méthode  `databaseInitializer()` de la classe `DatabaseInitializer`.
 
+TIP: Le schéma de la base de données, ainsi que ses datas sont consultables directement dans l'IDE, via l'onglet `Database` de la Toolbar. image:docs/jpa-database-ide.png[]
+
+== Le modèle
+
+[source, kotlin]
+----
+@Entity <1>
+@Table(name = "auteur")
+class Auteur(
+
+    @Column(name = "login", unique = true, nullable = false) <2>
+    var login: String,
+
+    @Column(name = "firstname", nullable = false)
+    var firstname: String,
+
+    @Column(name = "lastname", nullable = false)
+    var lastname: String,
+
+    @Column(columnDefinition="TEXT")
+    var description: String? = null,
+
+    @Id @GeneratedValue var id: Long? = null) <3>
+
+@Entity
+class Article(
+    var title: String, <4>
+    var headline: String,
+    var content: String,
+    @ManyToOne var author: Auteur,  <5>
+    var slug: String = title.toSlug(),
+    var addedAt: LocalDateTime = LocalDateTime.now(),
+    @Id @GeneratedValue var id: Long? = null)
+
+----
+<1> Désigne cette classe comme Entité, c'est à dire en relation avec une table dans le système de persistance de type SQL
+<2> Donne des informations pour la colonne correspondant à la propriété `login`
+<3> Clé primaire
+<4> Le nom de la colonne est directement déduit, par défaut, du nom de la propriété
+<5> Une relation entre entités du modèle. Autre choix `ManyToMany`, `OneToMany`, `OneToOne`
+
+
+== Le schéma relationnel
+
+Exemple d'ordre SQL de création du schéma de la base de données (opération réalisée par Spring Boot / Hibernate)
+
+[source, sql]
+----
+
+CREATE TABLE `auteur` (
+  `id` bigint NOT NULL,
+  `description` text,
+  `firstname` varchar(255) NOT NULL,
+  `lastname` varchar(255) NOT NULL,
+  `login` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `UK_3s24xk1o0x58fo2v9gwwvff9w` (`login`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+
+
+CREATE TABLE `article` (
+  `id` bigint NOT NULL,
+  `added_at` datetime(6) DEFAULT NULL,
+  `content` varchar(255) DEFAULT NULL,
+  `headline` varchar(255) DEFAULT NULL,
+  `slug` varchar(255) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `author_id` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FKenlp249onbxbxu9okxjyhlym7` (`author_id`),
+  CONSTRAINT `FKenlp249onbxbxu9okxjyhlym7` FOREIGN KEY (`author_id`) REFERENCES `auteur` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+
+
+----
 
 == Travaux pratiques
 
