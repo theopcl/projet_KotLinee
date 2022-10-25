@@ -1,7 +1,7 @@
 package com.example.demo.configuration
 
 import com.example.demo.model.Article
-import com.example.demo.model.User
+import com.example.demo.model.Auteur
 import com.example.demo.repository.ArticleRepository
 import com.example.demo.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,10 +27,10 @@ class DatabaseInitializer @Autowired constructor(
 
         if (countUser > 0) return
 
-        val bob = userRepository.save(User("solid", "Bob", "Martin"))
-        val meyer = userRepository.save(User("meyer", "Bertrand", "Meyer"))
-        val barbara = userRepository.save(User("barbara", "Barbara", "Liskov"))
-        val gof = userRepository.save(User("gof", "GoF", "Design Patterns"))
+        val bob = userRepository.save(Auteur("solid", "Bob", "Martin"))
+        val meyer = userRepository.save(Auteur("meyer", "Bertrand", "Meyer"))
+        val barbara = userRepository.save(Auteur("barbara", "Barbara", "Liskov"))
+        val gof = userRepository.save(Auteur("gof", "GoF", "Design Patterns"))
 
         articleRepository.save(
             Article(

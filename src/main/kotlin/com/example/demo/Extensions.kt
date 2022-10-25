@@ -1,9 +1,9 @@
 package com.example.demo
 
 import com.example.demo.dto.ArticleDto
-import com.example.demo.dto.UserDto
+import com.example.demo.dto.AuteurDto
 import com.example.demo.model.Article
-import com.example.demo.model.User
+import com.example.demo.model.Auteur
 import java.util.*
 
 fun String.toSlug() = lowercase(Locale.getDefault())
@@ -21,7 +21,7 @@ fun Article.toDto() = ArticleDto(
     this.author.toDto(),
     this.addedAt.toString())
 
-fun User.toDto() = UserDto(
+fun Auteur.toDto() = AuteurDto(
     this.firstname,
     this.lastname,
     this.description

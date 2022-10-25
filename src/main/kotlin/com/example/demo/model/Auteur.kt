@@ -6,7 +6,7 @@ import javax.persistence.Id
 
 
 @Entity
-class User(
+class Auteur(
     var login: String,
     var firstname: String,
     var lastname: String,
