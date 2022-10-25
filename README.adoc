@@ -140,6 +140,59 @@ CREATE TABLE `article` (
 
 ----
 
+
+== Les repositories
+
+[source, kotlin]
+----
+
+interface ArticleRepository : CrudRepository<Article, Long> { <1>
+    // ---------------------------------------------------------------
+    // Version Native SQL (dépendance avec le schéma relationnel)
+    // ---------------------------------------------------------------
+
+    @Query(
+        value = "SELECT * FROM article ORDER BY added_at DESC", nativeQuery = true <2>
+    )
+    fun findAllArticlesOrderByAddedAtDesc(): List<Article> <3>
+
+
+    // ---------------------------------------------------------------
+    // Version DSL by Spring Boot (ne dépend que du modèle)
+    // ---------------------------------------------------------------
+
+    fun findBySlug(slug: String): Article? <4>
+    fun findAllByOrderByAddedAtDesc(): Iterable<Article> <5>
+}
+
+----
+<1> Une interface qui hérite de `CrudRepository`. O précise la classe du mdoèle et le type de la clé primaire. Ainsi, Spring Boot sera en mesure d'*implémenter* automatiquement le code. Que de temps gagné pour le développeur !
+<2> Exemple d'usage de SQL pour implémenter des méthodes d'accès aux données. Très pratique si l'on dispose déjà de requêtes SQL sophistiquées.
+<3> Le nom de la méthode associée à la requête SQL
+<4> Inutile ici de coder du SQL ! Spring Boot se chargera de le faire pour vous. Les méthode doivent respecter les conventions de nommages et le bon nom des propriétés pour que cela fonctionne.
+<5> Equivalent à `findAllArticlesOrderByAddedAtDesc` déclarée en premier !
+
+
+== Le contrôleur
+
+[source, kotlin]
+----
+@Controller
+class ArticleController @Autowired
+   constructor(private val articleRepository: ArticleRepository){ <1>
+
+    @GetMapping("/articles")
+    fun index(model: Model): String {
+        model["title"] = "Les articles"
+        model["articles"] = articleRepository.findAllByOrderByAddedAtDesc().map { it.toDto() } <2>
+        return "article/index" <3>
+    }
+}
+----
+<1> Injection du repository en tant que propriété de la classe contrôleur
+<2> Appel tous les articles, et transformation de chacun d'eux en objet `ArticleDto` (_data transfert object_)
+<3> Désigne le nom de la vue qui sera utilisée
+
 == Travaux pratiques
 
 * Modifier la barre de navigation afin de ne montrer que les commandes suivantes :  `Articles`, `Auteurs`, `À Propos`
