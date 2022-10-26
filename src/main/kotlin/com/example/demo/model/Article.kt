@@ -12,7 +12,7 @@ class Article(
     var title: String,
     var headline: String,
     var content: String,
-    @ManyToOne var author: Auteur,
+    @ManyToOne var author: Person,
     var slug: String = title.toSlug(),
     var addedAt: LocalDateTime = LocalDateTime.now(),
     @Id @GeneratedValue var id: Long? = null)

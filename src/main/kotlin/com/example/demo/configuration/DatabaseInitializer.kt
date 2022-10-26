@@ -1,19 +1,18 @@
 package com.example.demo.configuration
 
 import com.example.demo.model.Article
-import com.example.demo.model.Auteur
+import com.example.demo.model.Person
 import com.example.demo.repository.ArticleRepository
-import com.example.demo.repository.AuteurRepository
+import com.example.demo.repository.PersonRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
-@Order(value = 1)
+//@Order(value = 1)
 @Component
 class DatabaseInitializer @Autowired constructor(
-    val auteurRepository: AuteurRepository,
+    val auteurRepository: PersonRepository,
     val articleRepository: ArticleRepository
 ) : ApplicationRunner {
 
@@ -27,17 +26,17 @@ class DatabaseInitializer @Autowired constructor(
 
         if (countUser > 0) return
 
-        val bob = auteurRepository.save(Auteur("solid", "Bob", "Martin",
+        val bob = auteurRepository.save(Person("solid", "Bob", "Martin",
             "Un référence pour les développeurs. est un ingénieur logiciel et auteur américain. Robert Cecil Martin (familièrement connu sous le nom Uncle Bob1) est un ingénieur logiciel et auteur américain. Il est co-auteur du Manifeste Agile2,3. Il dirige maintenant la société de conseil Uncle Bob Consulting LLC et le site web Clean Coders, qui héberge des vidéos basées sur son expérience et ses publications."))
 
-        val meyer = auteurRepository.save(Auteur("meyer", "Bertrand", "Meyer",
+        val meyer = auteurRepository.save(Person("meyer", "Bertrand", "Meyer",
             "Bertrand Meyer publie, durant sa carrière, plusieurs ouvrages consacrés à l'informatique théorique ainsi qu'au langage Eiffel et des articles dans de nombreuses revues. Entre autres activités, il est professeur de génie logiciel à l'École polytechnique fédérale de Zurich de 2001 à 2016"
         ))
 
-        val barbara = auteurRepository.save(Auteur("barbara", "Barbara", "Liskov",
+        val barbara = auteurRepository.save(Person("barbara", "Barbara", "Liskov",
             "Barbara Liskov est une informaticienne américaine. Elle a reçu en 2004 la médaille John von Neumann1 pour « ses contributions fondamentales aux langages de programmation, à la méthodologie de la programmation et aux systèmes distribués » et le Prix Turing en 2008."))
 
-        val gof = auteurRepository.save(Auteur("gof", "GoF", "Design Patterns",
+        val gof = auteurRepository.save(Person("gof", "GoF", "Design Patterns",
             "Gang of Four (GoF), les quatre informaticiens Erich Gamma, Richard Helm, Ralph Johnson et John Vlissides, auteurs de l'ouvrage de référence en programmation orientée objet Design Patterns : Catalogue de modèles de conception réutilisables."))
 
         articleRepository.save(

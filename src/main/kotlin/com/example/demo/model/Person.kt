@@ -4,7 +4,7 @@ import javax.persistence.*
 
 @Entity
 @Table(name = "auteur")
-class Auteur(
+class Person(
 
     @Column(name = "login", unique = true, nullable = false)
     var login: String,
@@ -17,5 +17,8 @@ class Auteur(
 
     @Column(columnDefinition="TEXT")
     var description: String? = null,
+
+    @OneToMany(mappedBy = "author", cascade = [CascadeType.ALL])
+    var articles: MutableList<Article> = mutableListOf(),
 
     @Id @GeneratedValue var id: Long? = null)

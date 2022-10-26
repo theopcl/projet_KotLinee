@@ -5,5 +5,7 @@ data class ArticleDto(
     val title: String,
     val headline: String,
     val content: String,
-    val author: AuteurDto,
-    val addedAt: String)
+    val author: PersonDto,
+    val addedAt: String,
+    var id: Long? = null
+    )
