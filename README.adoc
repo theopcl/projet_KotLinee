@@ -199,9 +199,12 @@ class ArticleController @Autowired
 
 * Faire en sorte que la liste des articles soit présentées par ordre FIFO.
 
-* Faire en sorte que la commande `Auteurs` présente la liste des auteurs. Prévoir une nouvelle classe contrôleur, nommée `AuteurController`.
+* Sur la page d'index des articles, ajouter, à chacune des fiches article, un lien permettant à l'utilisateur de visualiser le détail de cet article (tous ses champs). Prévoir une nouvelle méthode contrôleur dans la classe `ArticleController`, et une vue associée. (le formatage de la date peut être réalisé en `thymleaf` avec la classe utilitaire `#temporals` - consulter la documentation sur le net - https://stackoverflow.com/questions/39860643/formatting-date-in-thymeleaf[stackoverflow])
 
-* Permettre à l'utilisateur de créer un auteur. Ajouter un lien dans la vue `Liste des auteurs`, et prévoir une nouvelle méthode dans `AuteurController` qui renvoie à un formulaire. Attention, le login d'un utilisateur doit être unique (clé candidate). La soumission du formulaire de création se fera par la commande HTTP `POST`.
+* Faire en sorte que la commande `Auteurs` présente la liste des auteurs. Prévoir une nouvelle classe contrôleur, nommée `PersonController` et une nouvelle vue associée (à placer dans le bon dossier)
 
-* Sur la page d'index des articles, ajouter, à la fiche d'un article, un lien permettant à l'utilisateur de visualiser le détail de cet article (tous ses champs). Prévoir une nouvelle méthode contrôleur dans la classe `ArticleController`, et une vue associée.
+* Permettre à l'utilisateur de créer une personne auteur (via un lien dans la vue `Liste des auteurs`), et prévoir une nouvelle méthode dans `PersonController` qui renvoie à une vue formulaire. Attention, le login d'un utilisateur doit être unique (clé candidate). La soumission du formulaire de création se fera par la commande HTTP `POST`.
+
+* (Optionnellement) Proposer à l'utilisateur de modifier les caractéristiques d'une personne.
+
 
