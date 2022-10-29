@@ -14,18 +14,18 @@ fun String.toSlug() = lowercase(Locale.getDefault())
     .replace("-+".toRegex(), "-")
 
 fun Article.toDto() = ArticleDto(
-    this.slug,
-    this.title,
-    this.headline,
-    this.content,
-    this.author.toDto(),
-    this.addedAt.toString(),
-    this.id
+    slug = this.slug,
+    title = this.title,
+    headline = this.headline,
+    content = this.content,
+    addedAt = this.addedAt.toString(),
+    authorId = author.id,
+    id = this.id
 )
 
 fun Person.toDto() = PersonDto(
-    this.firstname,
-    this.lastname,
-    this.description,
-    this.id
+    firstname = this.firstname,
+    lastname = this.lastname,
+    description = this.description,
+    id = this.id
 )
