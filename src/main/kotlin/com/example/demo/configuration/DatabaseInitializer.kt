@@ -44,7 +44,7 @@ class DatabaseInitializer @Autowired constructor(
                 title = "S de SOLID",
                 headline = "Responsabilité unique (Single Responsibility)",
                 content = "Une classe, une fonction ou une méthode doit avoir une et une seule responsabilité",
-                author = bob
+                creditedTo = bob
             )
         )
 
@@ -53,7 +53,7 @@ class DatabaseInitializer @Autowired constructor(
                 title = "O de SOLD",
                 headline = "Ouvert/fermé (Open/closed principle)",
                 content = "Une entité applicative (classe, fonction, module ...) doit être fermée à la modification directe mais ouverte à l'extension",
-                author = meyer
+                creditedTo = meyer
             )
         )
 
@@ -62,7 +62,7 @@ class DatabaseInitializer @Autowired constructor(
                 title = "L de SOLID",
                 headline = "Substitution de Liskov (Liskov substitution principle)",
                 content = "Une instance de type T doit pouvoir être remplacée par une instance de type G, tel que G sous-type de T, sans que cela ne modifie la cohérence du programme",
-                author = barbara
+                creditedTo = barbara
             )
         )
 
@@ -71,7 +71,7 @@ class DatabaseInitializer @Autowired constructor(
                 title = "I de SOLID",
                 headline = "Ségrégation des interfaces (Interface segregation principle)",
                 content = "Préférer plusieurs interfaces spécifiques pour chaque client plutôt qu'une seule interface générale",
-                author = bob
+                creditedTo = bob
             )
         )
 
@@ -80,7 +80,7 @@ class DatabaseInitializer @Autowired constructor(
                 title = "D de SOLID",
                 headline = "Inversion des dépendances (Dependency inversion principle)",
                 content = "Il faut dépendre des abstractions, pas des implémentations",
-                author = gof
+                creditedTo = gof
             )
         )
     }

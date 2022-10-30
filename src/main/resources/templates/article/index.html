@@ -20,7 +20,7 @@
         <section>
             <header class="article-header">
                 <h2 class="article-title" th:text="${article.getTitle()}"></h2>
-                <div class="article-meta">By  <strong th:text="${article.author.lastname}"></strong>, on <strong> une date </strong></div>
+                <div class="article-meta">By  <strong th:text="${article.creditedTo.lastname}"></strong>, on <strong> une date </strong></div>
             </header>
             <div class="article-description">
                <p th:text="${article.headline}"></p>

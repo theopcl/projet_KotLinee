@@ -19,7 +19,7 @@ fun Article.toDto() = ArticleDto(
     headline = this.headline,
     content = this.content,
     addedAt = this.addedAt.toString(),
-    authorId = author.id,
+    creditedPersonId = creditedTo.id,
     id = this.id
 )
 

@@ -3,7 +3,7 @@ package com.example.demo.model
 import javax.persistence.*
 
 @Entity
-@Table(name = "auteur")
+@Table(name = "person")
 class Person(
 
     @Column(name = "login", unique = true, nullable = false)
@@ -18,7 +18,7 @@ class Person(
     @Column(columnDefinition="TEXT")
     var description: String? = null,
 
-    @OneToMany(mappedBy = "author", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "creditedTo", cascade = [CascadeType.ALL])
     var articles: MutableList<Article> = mutableListOf(),
 
     @Id @GeneratedValue var id: Long? = null)
