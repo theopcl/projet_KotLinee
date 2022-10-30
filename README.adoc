@@ -166,10 +166,10 @@ interface ArticleRepository : CrudRepository<Article, Long> { <1>
 }
 
 ----
-<1> Une interface qui hérite de `CrudRepository`. O précise la classe du mdoèle et le type de la clé primaire. Ainsi, Spring Boot sera en mesure d'*implémenter* automatiquement le code. Que de temps gagné pour le développeur !
-<2> Exemple d'usage de SQL pour implémenter des méthodes d'accès aux données. Très pratique si l'on dispose déjà de requêtes SQL sophistiquées.
-<3> Le nom de la méthode associée à la requête SQL
-<4> Inutile ici de coder du SQL ! Spring Boot se chargera de le faire pour vous. Les méthode doivent respecter les conventions de nommages et le bon nom des propriétés pour que cela fonctionne.
+<1> Une interface qui hérite de `CrudRepository`, la classe du modèle et le type de la clé primaire sont renseignés. Ainsi, Spring Boot sera en mesure d'*implémenter* automatiquement les méthodes de cette interface `CRUD`. Que de temps gagné pour le développeur !
+<2> Exemple d'usage de SQL pour personnaliser des méthodes d'accès aux données. Très pratique si l'on dispose déjà de requêtes SQL sophistiquées.
+<3> Le nom de la méthode associée à la requête `SQL`
+<4> Inutile ici de coder du SQL ! Spring Boot se chargera de le faire pour vous. Ces méthodes dérivées doivent respecter les conventions de nommages et le bon nom des propriétés pour que cela fonctionne, ainsi que les mots clés prévus à cet effet (https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#appendix.query.method.subject[mots clés supportés] et https://docs.spring.io/spring-data/jpa/docs/current/reference/html/[ref manuel]). L'utilisateur est fortement assisté s'il utilise `IntelliJ`.
 <5> Equivalent à `findAllArticlesOrderByAddedAtDesc` déclarée en premier !
 
 
@@ -192,6 +192,18 @@ class ArticleController @Autowired
 <1> Injection du repository en tant que propriété de la classe contrôleur
 <2> Appel tous les articles, et transformation de chacun d'eux en objet `ArticleDto` (_data transfert object_)
 <3> Désigne le nom de la vue qui sera utilisée
+
+== les DTOs
+
+Les DTOs (_Data Transfert Object_) sont des classes qui ont fonction d'être en première ligne d'exposition des objets du domaine métier (les entités) lors d'opérations sensibles (création et modification d'état).
+
+Une entité métier (une instance) se doit d'être toujours dans un état cohérent, ce qui n'est pas toujours possible lors d'opérations d'écriture, et c'est encore plus sensible lorsque les données proviennent de l'extérieur.
+
+.Exemple de classe DTO
+[source, kotlin]
+----
+
+----
 
 == Travaux pratiques
 
