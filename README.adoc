@@ -66,7 +66,9 @@ Prendre connaissance de l'impact `spring.jpa.hibernate.ddl-auto=*create-drop*` s
 
 TIP: Le schéma de la base de données, ainsi que ses datas sont consultables directement dans l'IDE, via l'onglet `Database` de la Toolbar. image:docs/jpa-database-ide.png[]
 
-== Le modèle
+== Le modèle métier
+
+Le domaine métier (du point de vue des utilisateurs de l'application) est définis par un enseble de classes `Entity` placées dans un package à part (très souvent nommé *model* footnote:[Na pas confondre avec la classe `Model` de `MVC` (_Model View Controller_), qui est une classe qui a pour fonction de liaison entre le contrôleur et la vue.]). Ce sont les données qui font l'objet de persistance dans les bases de données.
 
 [source, kotlin]
 ----
@@ -271,6 +273,113 @@ TIP: Le fait que les attributs des classes Kotlin sont en fait des properties no
 
 Voir plus loin ici : https://beanvalidation.org/2.0/spec/#builtinconstraints/[table-builtin-constraints]
 
+== Validation de formulaire
+
+Typiquement, le formulaire HTML est l'outil qui permet à un utilisateur, in fine, de créer ou modifier une entité du modèle métier.
+
+=== Le formulaire
+
+[source, html]
+----
+<form action="#" th:action="@{/addPerson}" <1>
+       th:object="${personDto}" <2>
+       method="post"> <3>
+    <div class="mb-3">
+        <label for="id-login" class="form-label">Login</label>
+        <input type="text" th:field="*{login}" <4>
+           class="form-control" id="id-login" aria-describedby="login person">
+        <div th:if="${#fields.hasErrors('login')}" <5>
+          class="error-input" th:errors="*{login}">Login Error</div>
+        <div id="loginHelp" class="form-text">an original login</div>
+    </div>
+    <div class="mb-3">
+        <label for="idFirstname" class="form-label">Firstname</label>
+        <input type="text" th:field="*{firstname}" class="form-control" id="idFirstname">
+        <div th:if="${#fields.hasErrors('firstname')}" class="error-input" th:errors="*{firstname}">firstname
+            Error
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="idLastname" class="form-label">Lastname</label>
+        <input type="text" th:field="*{lastname}" class="form-control" id="idLastname">
+        <div th:if="${#fields.hasErrors('lastname')}" class="error-input" th:errors="*{lastname}">lastname Error
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="idDescription" class="form-label">Description</label>
+        <input type="text" th:field="*{description}" class="form-control" id="idDescription">
+        <div th:if="${#fields.hasErrors('description')}" class="error-input" th:errors="*{description}">description
+            Error
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+----
+<1> Désigne la route cible du formulaire
+<2> Identifie l'objet qui sert de réceptacle des données du formulaire (un DTO). C'est fort pratique, car ainsi le développeur fait l'économie d'extraire une par une les données du formulaire afin de les injecter ensuite dans un objet DTO.
+<3> Les données du formulaire seront transmis dans le corps de la requête HTTP
+<4> Liaison de la donnée du `input` avec une propriété de l'objet DTO.
+<5> Présentation localisée d'erreur(s) éventuelle(s) sur la propriété de l'objet DTO.
+
+.Exemple GET `/addPerson`
+[source, kotlin]
+----
+@GetMapping("/addPerson") <1>
+fun showForm(personDto: PersonDto): String { <2>
+    return "person/form" <3>
+}
+
+@PostMapping("/addPerson")
+fun addPerson(@Valid personDto: PersonDto, bindingResult: BindingResult): String {
+    return if (bindingResult.hasErrors()) {
+        "person/form"
+    } else {
+        personRepository.save(personDto.toPerson())
+        "redirect:/auteurs"
+    }
+}
+
+----
+
+<1> Méthode `GET` par défaut (appel du formulaire par le client HTTP distant)
+<2> Le paramètre de type `PersonDto` sera passé à cette fonction au moment de son appel. Cet objet sera soit créé (la première fois) soit extrait de l'objet `Model` du contexte d'appel (celui qui fait le lien entre le contrôleur et la vue, et qui est *implicite* ici)
+<3> Le chemin vers la vue (de racine implicite `resources/template/`)
+
+
+=== Validation du formulaire
+
+Ce travail doit être réalisé côté serveur footnote:[même si certaines données peuvent l'être côté client, parfois naïvement]
+
+
+.Exemple POST `/addPerson`
+[source, kotlin]
+----
+
+@PostMapping("/addPerson") <1>
+fun addPerson(@Valid personDto: PersonDto, <2>
+              bindingResult: BindingResult): String { <3>
+    return if (bindingResult.hasErrors()) { <4>
+        "person/form"
+    } else {
+        personRepository.save(personDto.toPerson()) <5>
+        "redirect:/auteurs" <6>
+    }
+}
+
+----
+<1> `POST` par convention
+<2> Le paramètre de type `PersonDto` est préfixé par `@Valid`, ce qui a pour effet de valider cet objet avant de le passer à ce contrôleur.
+<3> L'objet de type `BindingResult` détient les erreurs, si elles ont été détectées lors de la phase de validation.
+<4> En cas de présence d'erreurs, le formulaire est renvoyé à l'utilisateur, avec les valeurs précédemment renseignées et les messages d'erreurs.
+<5> Si aucune erreur n'est détectée, alors l'entité peut être créée et sauvegardée dans la base de données.
+<6> Une fois réalisée, un ordre de redirection est renvoyé au client distant. C'est un principe de bonne pratique en développement web, qui porte le non de `PRG` pour _Post Redirect Get_.
++
+Pour comprendre les problèmes résolus par `PRG` une recherche sur wikipedia s'impose...
+
+.Exemple de retour en <4>
+image:docs/formulaire-erreurs.png[formulaire erreurs]
 
 == Travaux pratiques
 
@@ -278,12 +387,14 @@ Voir plus loin ici : https://beanvalidation.org/2.0/spec/#builtinconstraints/[ta
 
 * Faire en sorte que la liste des articles soit présentées par ordre FIFO.
 
-* Sur la page d'index des articles, ajouter, à chacune des fiches article, un lien permettant à l'utilisateur de visualiser le détail de cet article (tous ses champs). Prévoir une nouvelle méthode contrôleur dans la classe `ArticleController`, et une vue associée. (le formatage de la date peut être réalisé en `thymleaf` avec la classe utilitaire `#temporals` - consulter la documentation sur le net - https://stackoverflow.com/questions/39860643/formatting-date-in-thymeleaf[stackoverflow])
+* Sur la page d'index des articles, ajouter, à chacune des fiches article, un lien permettant à l'utilisateur de visualiser le détail de cet article (tous ses champs, sauf l'id). Prévoir une nouvelle méthode contrôleur dans la classe `ArticleController`, et une vue associée. (le formatage de la date peut être réalisé en `thymleaf` avec la classe utilitaire `#temporals` - consulter la documentation sur le net - https://stackoverflow.com/questions/39860643/formatting-date-in-thymeleaf[stackoverflow])
 
 * Faire en sorte que la commande `Auteurs` présente la liste des auteurs. Prévoir une nouvelle classe contrôleur, nommée `PersonController` et une nouvelle vue associée (à placer dans le bon dossier)
 
 * Permettre à l'utilisateur de créer une personne auteur (via un lien dans la vue `Liste des auteurs`), et prévoir une nouvelle méthode dans `PersonController` qui renvoie à une vue formulaire. Attention, le login d'un utilisateur doit être unique (clé candidate). La soumission du formulaire de création se fera par la commande HTTP `POST`.
 
-* (Optionnellement) Proposer à l'utilisateur de modifier les caractéristiques d'une personne.
+* Dans la liste des auteurs, indiquer en face de chaque auteur le nombre d'articles le concernant.
+
+* (Optionnel) Proposer à l'utilisateur de modifier les caractéristiques d'une personne.
 
 
