@@ -13,13 +13,14 @@ Une application starter basée sur les guides suivants
 
 Une lecture de ces ressources est vivement recommandée.
 
-
 == Prérequis
 
 * Premiers pas réussis en Kotlin
 * Une machine opérationnelle (test de l'application https://github.com/ldv-melun/sbfirst)
 * Avoir réalisé les exercices https://ldv-melun.github.io/sio-slam/sio-component/index-spring-boot.html#_travaux_pratiques_le_contr%C3%B4leur_et_la_vue_initiation[Exercices avec Controleur et Vue]
+* Avoir pris connaissance du chapitre _Introduction à JPA_ du https://ldv-melun.github.io/sio-slam/sio-component/index-spring-boot[support Spring Boot]
 * Disposer d'un serveur Mysql à proximité (plus simplement sur votre machine de dev)
+* Avoir des compétences de bases minimales en HTML/CSS et SQL
 
 == Les dépendances
 
@@ -60,15 +61,15 @@ Voir ici : https://spring.io/guides/gs/accessing-data-mysql/ chapitre, "_Make So
 
 == Prise en main
 
-Après avoir cloné l'application, et avant de lancer l'application, vérifier la conformité du contenu de `src/main/resources/application-local.properties`.
+Après avoir cloné l'application, et avant de lancer l'application, vérifier la conformité du contenu de `src/main/resources/application.properties`.
 
-Prendre connaissance de l'impact `spring.jpa.hibernate.ddl-auto=*create-drop*` sur la base de données (puis changer par *update*), et, en particulier, consulter le corps de la méthode  `databaseInitializer()` de la classe `DatabaseInitializer`.
+Prendre connaissance de l'impact `spring.jpa.hibernate.ddl-auto=*create*` sur la base de données (puis changer par *update*), et, en particulier, consulter le corps de la méthode  `databaseInitializer()` de la classe `DatabaseInitializer`.
 
 TIP: Le schéma de la base de données, ainsi que ses datas sont consultables directement dans l'IDE, via l'onglet `Database` de la Toolbar. image:docs/jpa-database-ide.png[]
 
 == Le modèle métier
 
-Le domaine métier (du point de vue des utilisateurs de l'application) est définis par un enseble de classes `Entity` placées dans un package à part (très souvent nommé *model* footnote:[Na pas confondre avec la classe `Model` de `MVC` (_Model View Controller_), qui est une classe qui a pour fonction de liaison entre le contrôleur et la vue.]). Ce sont les données qui font l'objet de persistance dans les bases de données.
+Le domaine métier (du point de vue des utilisateurs de l'application) est définis par un enseble de classes `Entity` placées dans un package à part (très souvent nommé *model* footnote:[Na pas confondre avec la classe `Model` de `MVC` (_Model View Controller_), qui est une classe qui a pour fonction de liaison entre le contrôleur et la vue.]) ou *domain*. Ce sont les données qui font l'objet de persistance dans les bases de données.
 
 [source, kotlin]
 ----
@@ -88,14 +89,17 @@ class Person(
     @Column(columnDefinition="TEXT")
     var description: String? = null,
 
-    @Id @GeneratedValue var id: Long? = null) <3>
+    @OneToMany(mappedBy = "creditedTo", cascade = [CascadeType.ALL]) <3>
+    var articles: MutableList<Article> = mutableListOf(),
+
+    @Id @GeneratedValue var id: Long? = null) <4>
 
 @Entity
 class Article(
-    var title: String, <4>
+    var title: String, <5>
     var headline: String,
     var content: String,
-    @ManyToOne var creditedTo: Person,  <5>
+    @ManyToOne var creditedTo: Person,  <6>
     var slug: String = title.toSlug(),
     var addedAt: LocalDateTime = LocalDateTime.now(),
     @Id @GeneratedValue var id: Long? = null)
@@ -103,10 +107,19 @@ class Article(
 ----
 <1> Désigne cette classe comme Entité, c'est à dire en relation avec une table dans le système de persistance de type SQL
 <2> Donne des informations pour la colonne correspondant à la propriété `login`
-<3> Clé primaire
-<4> Le nom de la colonne est directement déduit, par défaut, du nom de la propriété
-<5> Une relation entre entités du modèle. Autre choix `ManyToMany`, `OneToMany`, `OneToOne`
+<3> C'est le lien inverse d'une DF déclaré dans l'entité Article.
+<4> Clé primaire
+<5> Le nom de la colonne est directement déduit, par défaut, du nom de la propriété
+<6> Une DF, relation entre entités du modèle. Attention, il n'est pas question ici de PK ni de FK, mais d'un lien entre objets !
 
+[TIP]
+====
+Les autres relations, de type association, entre entités du modèle métier sont :
+
+* `ManyToMany` (Une DMR directe et élémentaire, non porteuse de propriétés),
+* `OneToOne`, (DF directes et élémentaires réciproques)
+* `OneToMany` (Un lien inverse d'une DF directe et élémentaire),
+====
 
 == Le schéma relationnel
 
@@ -142,9 +155,20 @@ CREATE TABLE `article` (
 
 ----
 
+[NOTE]
+====
+Le lien `@ManyToOne` de la classe `@Entity` est traduit en une *clé étrangère* dans la table liée à l'entité.
+
+Une *FK* (_Foreign Key_) pointe toujours sur une *PK* (_Primary  Key_)
+====
 
 == Les repositories
 
+Ce sont des interfaces techniques qui se chargent des opérations en liens avec la base de données, opérations d'interrogation (_query_) et d'écriture (_create, update_)
+
+Les méthodes de ces interfaces sont soit pilotées par le schéma relationnel de la base, et donc exprimées en `SQL` , soit héritées d'interface prévues à cet effet, comme `CrudRepository` par exemple.
+
+.Exemple d'un repository associé à la classe entité `Article`
 [source, kotlin]
 ----
 
@@ -171,7 +195,7 @@ interface ArticleRepository : CrudRepository<Article, Long> { <1>
 <1> Une interface qui hérite de `CrudRepository`, la classe du modèle et le type de la clé primaire sont renseignés. Ainsi, Spring Boot sera en mesure d'*implémenter* automatiquement les méthodes de cette interface `CRUD`. Que de temps gagné pour le développeur !
 <2> Exemple d'usage de SQL pour personnaliser des méthodes d'accès aux données. Très pratique si l'on dispose déjà de requêtes SQL sophistiquées.
 <3> Le nom de la méthode associée à la requête `SQL`
-<4> Inutile ici de coder du SQL ! Spring Boot se chargera de le faire pour vous. Ces méthodes dérivées doivent respecter les conventions de nommages et le bon nom des propriétés pour que cela fonctionne, ainsi que les mots clés prévus à cet effet (https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#appendix.query.method.subject[mots clés supportés] et https://docs.spring.io/spring-data/jpa/docs/current/reference/html/[ref manuel]). L'utilisateur est fortement assisté s'il utilise `IntelliJ`.
+<4> Inutile ici de coder du SQL ! Spring Boot se chargera de le faire pour vous. Ces *méthodes dérivées* doivent respecter les conventions de nommages et le bon nom des propriétés pour que cela fonctionne, ainsi que les mots clés prévus à cet effet comme `OrderBy`, `Exists`, `GreaterThan`, etc .(voir ici : https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#appendix.query.method.subject[mots clés supportés] et https://docs.spring.io/spring-data/jpa/docs/current/reference/html/[ref manuel]). L'utilisateur est fortement assisté s'il utilise `IntelliJ`.
 <5> Equivalent à `findAllArticlesOrderByAddedAtDesc` déclarée en premier !
 
 
@@ -186,14 +210,14 @@ class ArticleController @Autowired
     @GetMapping("/articles")
     fun index(model: Model): String {
         model["title"] = "Les articles"
-        model["articles"] = articleRepository.findAllByOrderByAddedAtDesc() <2>
+        model["articles"] = articleRepository.findAllArticlesOrderByAddedAtDesc() <2>
         return "article/index" <3>
     }
 }
 ----
 <1> Injection du repository en tant que propriété de la classe contrôleur
-<2> Appel tous les articles
-<3> Désigne le nom de la vue qui sera utilisée
+<2> Appel tous les articles. L'appel de `findAllByOrderByAddedAtDesc` aurait le même résultat
+<3> Désigne le nom de la vue qui sera utilisée ( celui-ci : `src/main/resources/article/index.html`)
 
 == les DTOs
 
@@ -275,9 +299,15 @@ Voir plus loin ici : https://beanvalidation.org/2.0/spec/#builtinconstraints/[ta
 
 == Validation de formulaire
 
-Typiquement, le formulaire HTML est l'outil qui permet à un utilisateur, in fine, de créer ou modifier une entité du modèle métier.
+Typiquement, le formulaire HTML est l'outil qui permet à un utilisateur de créer ou modifier une entité du modèle métier.
+
+En cas de saisies de données incorrectes (syntaxe d'un email, valeur d'un nombre, état d'une chaîne de caractères, absence de valeur, date trop courte, etc.), le formulaire doit être représenté à l'utilisateur, avec ses erreurs mises en évidence ainsi que ses valeurs précédemment saisies ou sélectionnées.
+
+Ce traitement recurrent peut ête automatisé à condition de faire travailler de concert le contrôleur et la vue.
 
 === Le formulaire
+
+Nous utilisons ici des classes `CSS` du bootstrap 5.2.2.
 
 [source, html]
 ----
@@ -323,6 +353,10 @@ Typiquement, le formulaire HTML est l'outil qui permet à un utilisateur, in fin
 <4> Liaison de la donnée du `input` avec une propriété de l'objet DTO.
 <5> Présentation localisée d'erreur(s) éventuelle(s) sur la propriété de l'objet DTO.
 
+=== Contrôleur de présentation du formulaire
+
+Voici une façon de faire, dans sa plus simple expression depuis les dernières versions de Spring Boot.
+
 .Exemple GET `/addPerson`
 [source, kotlin]
 ----
@@ -331,26 +365,20 @@ fun showForm(personDto: PersonDto): String { <2>
     return "person/form" <3>
 }
 
-@PostMapping("/addPerson")
-fun addPerson(@Valid personDto: PersonDto, bindingResult: BindingResult): String {
-    return if (bindingResult.hasErrors()) {
-        "person/form"
-    } else {
-        personRepository.save(personDto.toPerson())
-        "redirect:/auteurs"
-    }
-}
-
 ----
 
 <1> Méthode `GET` par défaut (appel du formulaire par le client HTTP distant)
-<2> Le paramètre de type `PersonDto` sera passé à cette fonction au moment de son appel. Cet objet sera soit créé (la première fois) soit extrait de l'objet `Model` du contexte d'appel (celui qui fait le lien entre le contrôleur et la vue, et qui est *implicite* ici)
+<2> Le paramètre de type `PersonDto` sera passé à cette fonction au moment de son appel. Cet objet sera, soit créé (la première fois par Spring Boot), soit extrait de l'objet `Model` du contexte d'appel (celui qui fait le lien entre le contrôleur et la vue, et qui est *implicite* ici)
 <3> Le chemin vers la vue (de racine implicite `resources/template/`)
 
 
 === Validation du formulaire
 
-Ce travail doit être réalisé côté serveur footnote:[même si certaines données peuvent l'être côté client, parfois naïvement]
+Ce travail doit être réalisé côté serveur footnote:[même si certaines validations peuvent l'être côté client, parfois naïvement], pour une question de sécurité liée au niveau *zéro* de confiance des données d'entrée.
+
+IMPORTANT: La leçon la plus importante à retenir concernant la sécurité d'un site web est de ne *jamais faire confiance aux données accompagnant une requête HTTP*. Cela comprend les requêtes GET avec la présence des paramètres dans l'URL, les données envoyées avec les POST, les en-têtes HTTP, les cookies, les fichiers chargés par l'utilisateur, etc. Il faut toujours vérifier et assainir les données. Il faut toujours s'attendre au pire. (voir plus en détail : https://developer.mozilla.org/fr/docs/Learn/Server-side/First_steps/Website_security[https://developer.mozilla.org  Website_security])
+
+Spring Boot propose de prendre en charge la validation des contraintes déclarées dans les DTOs sous la forme d'annotation (JSR 380). Pour activer ce mécanisme, le développeur annote le paramètre DTO du contrôleur par *`@Valid`*. Exemple.
 
 
 .Exemple POST `/addPerson`
@@ -370,18 +398,20 @@ fun addPerson(@Valid personDto: PersonDto, <2>
 
 ----
 <1> `POST` par convention
-<2> Le paramètre de type `PersonDto` est préfixé par `@Valid`, ce qui a pour effet de valider cet objet avant de le passer à ce contrôleur.
-<3> L'objet de type `BindingResult` détient les erreurs, si elles ont été détectées lors de la phase de validation.
+<2> L'annotation *@Valid* déclenche la validation côté serveur avant l'appel de ce contrôleur. Le paramètre de type `PersonDto` étant préfixé par `@Valid` est l'objet de la validation.
+<3> L'objet de type `BindingResult` détient les erreurs détectées lors du processus de validation. C'est à partir de l'état de cet objet que le développeur décide ou non de retourner le formulaire à l'utilisateur.
 <4> En cas de présence d'erreurs, le formulaire est renvoyé à l'utilisateur, avec les valeurs précédemment renseignées et les messages d'erreurs.
 <5> Si aucune erreur n'est détectée, alors l'entité peut être créée et sauvegardée dans la base de données.
 <6> Une fois réalisée, un ordre de redirection est renvoyé au client distant. C'est un principe de bonne pratique en développement web, qui porte le non de `PRG` pour _Post Redirect Get_.
 +
-Pour comprendre les problèmes résolus par `PRG` une recherche sur wikipedia s'impose...
+TIP: Pour comprendre les problèmes résolus par `PRG`, une recherche sur wikipedia s'impose...
 
 .Exemple de retour en <4>
 image:docs/formulaire-erreurs.png[formulaire erreurs]
 
 == Travaux pratiques
+
+Il est temps de mettre en pratique l'ensemble assez riche des concepts fondamentaux en développement web présentés dans cette section !
 
 * Modifier la barre de navigation afin de ne montrer que les commandes suivantes :  `Articles`, `Auteurs`, `À Propos`
 
@@ -391,7 +421,7 @@ image:docs/formulaire-erreurs.png[formulaire erreurs]
 
 * Faire en sorte que la commande `Auteurs` présente la liste des auteurs. Prévoir une nouvelle classe contrôleur, nommée `PersonController` et une nouvelle vue associée (à placer dans le bon dossier)
 
-* Permettre à l'utilisateur de créer une personne auteur (via un lien dans la vue `Liste des auteurs`), et prévoir une nouvelle méthode dans `PersonController` qui renvoie à une vue formulaire. Attention, le login d'un utilisateur doit être unique (clé candidate). La soumission du formulaire de création se fera par la commande HTTP `POST`.
+* Permettre à l'utilisateur de créer une personne (via un lien dans la vue `Liste des auteurs`), et prévoir une nouvelle méthode dans `PersonController` qui renvoie à une vue formulaire. Attention, le login d'un utilisateur doit être unique (clé candidate). La soumission du formulaire de création se fera par la commande HTTP `POST`.
 
 * Dans la liste des auteurs, indiquer en face de chaque auteur le nombre d'articles le concernant.
 

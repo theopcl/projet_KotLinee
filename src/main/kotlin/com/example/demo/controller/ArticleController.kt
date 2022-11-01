@@ -14,7 +14,7 @@ class ArticleController @Autowired constructor(private val articleRepository: Ar
     @GetMapping("/articles")
     fun index(model: Model): String {
         model["title"] = "Les articles"
-        model["articles"] = articleRepository.findAllByOrderByAddedAtDesc()
+        model["articles"] = articleRepository.findAllArticlesOrderByAddedAtDesc()
         return "article/index"
     }
 
