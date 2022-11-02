@@ -1,7 +1,7 @@
 package com.example.demo.configuration
 
-import com.example.demo.model.Article
-import com.example.demo.model.Person
+import com.example.demo.domain.Article
+import com.example.demo.domain.Person
 import com.example.demo.repository.ArticleRepository
 import com.example.demo.repository.PersonRepository
 import org.springframework.beans.factory.annotation.Autowired

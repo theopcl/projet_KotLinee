@@ -2,8 +2,8 @@ package com.example.demo
 
 import com.example.demo.dto.ArticleDto
 import com.example.demo.dto.PersonDto
-import com.example.demo.model.Article
-import com.example.demo.model.Person
+import com.example.demo.domain.Article
+import com.example.demo.domain.Person
 import java.util.*
 
 fun String.toSlug() = lowercase(Locale.getDefault())

@@ -1,4 +1,4 @@
-package com.example.demo.model
+package com.example.demo.domain
 
 import com.example.demo.toSlug
 import java.time.LocalDateTime
