@@ -432,6 +432,24 @@ Il est temps de mettre en pratique l'ensemble assez riche des concepts fondament
 
 * Dans la liste des auteurs, indiquer en face de chaque auteur le nombre d'articles le concernant.
 
+
+* Ajouter la propriété `QItem` à la classe `Person` (type `String`). Cette propriété est un identifiant d'entité de *wikidata* (_Wikidata is a free and open knowledge base that can be read and edited by both humans and machines. Wikidata acts as central storage for the structured data of its Wikimedia sister projects including Wikipedia, Wikivoyage, Wiktionary, Wikisource, and others._)
++
+Si la propriété `QItem` de wikidata d'une personne est renseignée, alors faire en sorte que le client HTTP affiche la photo de cette personne dans la vue détaillée. Une implémentation en *JavaScript* est attendue.
++
+TIP: Le travail est ainsi délégué au client : c'est lui qui consommera l'énergie électrique et la bande passante nécessaire à cette fonction.
++
+Ressources à exploiter :
+
+** L'algorithme d'affichage d'une image via l'API de wikidata : https://stackoverflow.com/questions/34393884/how-to-get-image-url-property-from-wikidata-item-by-api[stackoverflow - how-to-get-image-url-property-from-wikidata-item-by-api]
+** https://m.wikidata.org/wiki/Wikidata:Main_Page[Search page de wikidata], à tester avec `Barbara Liskov`, vous obtenez le QItem suivant : `Q16080922`. Ensuite les étapes suivantes sont à programmer côté client en JS.
+
+.. Obtenir (appel de type AJAX) les informations sur une image possible de la personne (property 18) : https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P18&entity=Q16080922[]
+.. Obtenir le md5 du nom de l'image (remplacer les espaces par `_`). Pour la logique côté client, en JS, voir  https://cdn.jsdelivr.net/npm/md5-js-tools@1.0.2/lib/md5.min.js[function md5.min.js]. Vous pouvez comparer avec le   https://www.md5.cz/[md5 en ligne]
+.. Ajouter au DOM une balise `img` avec comme valeur de `src` l'URL construite selon l'algorithme préconisé par la réponse de _Termininja_ sur stackoverflow.
+
+
+
 * (Optionnel) Proposer à l'utilisateur de modifier les caractéristiques d'une personne.
 
 
