@@ -191,7 +191,7 @@ interface ArticleRepository : CrudRepository<Article, Long> { <1>
 
 
     // ---------------------------------------------------------------
-    // Version DSL by Spring Boot (ne dépend que du modèle)
+    // Version DSL by Spring Boot (ne dépend que du domaine métier - Entity)
     // ---------------------------------------------------------------
 
     fun findBySlug(slug: String): Article? <4>
