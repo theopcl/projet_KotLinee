@@ -224,11 +224,39 @@ class ArticleController @Autowired
 ----
 <1> Injection du repository en tant que propriété de la classe contrôleur
 <2> Appel tous les articles. L'appel de `findAllByOrderByAddedAtDesc` aurait le même résultat
-<3> Désigne le nom de la vue qui sera utilisée ( celui-ci : `src/main/resources/article/index.html`)
+<3> Désigne le nom de la vue qui sera utilisée ( celui-ci : `src/main/resources/templates/article/index.html`)
+
+== Extrait de la vue de la liste des articles
+
+.src/main/resources/templates/article/index.html
+[source, thymeleaftemplatesfragmentexpressions]
+----
+<div class="articles">
+    <th:block th:each="article : ${articles}"> <1>
+    <section>
+        <header class="article-header">
+            <h2 class="article-title" th:text="${article.title}"></h2> <2>
+            <div class="article-meta">By
+              <strong th:text="${article.creditedTo.lastname}"></strong>, <3>
+              on <strong> une date </strong></div> <4>
+        </header>
+        <div class="article-description">
+           <p th:text="${article.headline}"></p>
+           <p th:text="${'slug: ' + article.slug}"></p>
+        </div>
+    </section>
+    </th:block>
+</div>
+----
+
+<1> Un _foreach_ en Thymeleaf. L'instruction `th:each="article : ${articles}` déclare une variable de boucle nommée `article`.
+<2> Le titre de chaque article est placé comme contenu de la balise `h2`
+<3> On va chercher le nom de l'auteur (l'objet article est liée à une personne par la propriété `creditedTo`)
+<4> ... Il faudrait placer la date de création de l'article ici ! (voir TP)
 
 == les DTOs
 
-Les DTOs (_Data Transfert Object_) sont des classes qui ont fonction d'être en première ligne d'exposition des objets du domaine métier (les entités) lors d'opérations sensibles (création et modification d'état).
+Les DTOs (_Data Transfert Object_) sont des classes qui ont fonction d'être *en première ligne* d'exposition des objets du domaine métier (les entités) lors d'opérations sensibles (création et modification d'état).
 
 Une entité métier (une instance) se doit d'être toujours dans un état cohérent, ce qui n'est pas toujours possible lors d'opérations d'écriture, et c'est encore plus sensible lorsque les données proviennent de l'extérieur.
 
