@@ -229,7 +229,7 @@ class ArticleController @Autowired
 == Extrait de la vue de la liste des articles
 
 .src/main/resources/templates/article/index.html
-[source, thymeleaftemplatesfragmentexpressions]
+[source, html]
 ----
 <div class="articles">
     <th:block th:each="article : ${articles}"> <1>
