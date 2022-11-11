@@ -48,6 +48,9 @@ Après avoir lancé la commande `mysql` (une application qui se connecte par dé
 
 Dans un second temps, vous (en tant qu'administrateur de bases de données) donnez les droits à l'utilisateur sur la base de données de l'application.
 
+Connectez-vous à MySql en ligne de commande, via la commande `mysql`
+
+.puis inspirez-vous de commandes suivantes pour initialiser une base de données
 [source, mysql]
 ----
 mysql> create database db_example; -- Creates the new database
@@ -68,11 +71,27 @@ Voir ici : https://spring.io/guides/gs/accessing-data-mysql/ chapitre, "_Make So
 
 == Prise en main
 
-Après avoir cloné l'application, et avant de lancer l'application, vérifier la conformité du contenu de `src/main/resources/application.properties`.
+=== application.properties
 
-Prendre connaissance de l'impact `spring.jpa.hibernate.ddl-auto=*create*` sur la base de données (puis changer par *update*), et, en particulier, consulter le corps de la méthode  `databaseInitializer()` de la classe `DatabaseInitializer`.
+Après avoir cloné l'application, et avant de lancer l'application, vérifier la conformité du contenu de `src/main/resources/application.properties` qui contient des informations utilisées par votre application pour se connecter à votre base de données créée précédemment.
+
+.src/main/resources/application.properties (extrait)
+[source, properties]
+----
+spring.datasource.url=jdbc:mysql://${MYSQL_HOST:localhost}:3306/db_example <1>
+spring.datasource.username=springuser <2>
+spring.datasource.password=ThePassword <3>
+----
+
+<1> db_example : le nom de la base de données que vous avez créée (à modifier le cas échéant)
+<2> idem pour le compte utilisateur MySQL utilisé par l'application pour se connecter à la base de données.
+<3> mot de passe, en clair, de compte utilisateur MySQL
+
+C'est une bonne chose de tester l'accès à MySql via l'onglet `Database` de l'IDE IntelliJ.
 
 TIP: Le schéma de la base de données, ainsi que ses datas sont consultables directement dans l'IDE, via l'onglet `Database` de la Toolbar. image:docs/jpa-database-ide.png[]
+
+Prendre connaissance de l'impact `spring.jpa.hibernate.ddl-auto=*create*` sur la base de données (puis changer par *update*), et, en particulier, consulter le corps de la méthode  `databaseInitializer()` de la classe `DatabaseInitializer`.
 
 == Le modèle métier
 
