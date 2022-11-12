@@ -434,7 +434,6 @@ IMPORTANT: La leçon la plus importante à retenir concernant la sécurité d'un
 
 Spring Boot propose de prendre en charge la validation des contraintes déclarées dans les DTOs sous la forme d'annotation (JSR 380). Pour activer ce mécanisme, le développeur annote le paramètre DTO du contrôleur par *`@Valid`*. Exemple.
 
-
 .Exemple POST `/addPerson`
 [source, kotlin]
 ----
@@ -462,6 +461,50 @@ TIP: Pour comprendre les problèmes résolus par `PRG`, une recherche sur wikipe
 
 .Exemple de retour en <4>
 image:docs/formulaire-erreurs.png[formulaire erreurs]
+
+=== Validation de niveau entité
+
+Les contraintes déclaratives (via des annotations) que nous avons présentées sont bien pratiques. Mais elles sont liées à une propriété de l'entité. Il y a des situations qui nécessite de prendre en compte la concordance entre propriétés, ou nécessitant un traitement plus complexe.
+
+Ce type de validation peut être déporté dans des classes dédiées (de type `Validator`), ou dans de simles fonctions.
+
+Exemple
+[source, kotlin]
+----
+ @PostMapping("/addPerson")
+    fun addPerson(@Valid personDto: PersonDto, bindingResult: BindingResult): String {
+        if (alreadyLoginExists(personDto.login) { <1>
+           bindingResult.reject("", "Le login est déjà pris !") <2>
+           // ou en rapportant l'erreur au niveau de la proporié login
+           // bindingResult.reject("", "login", "Le login est déjà pris !")
+        }
+        return if (bindingResult.hasErrors()) {
+            "person/form"
+        } else {
+            personRepository.save(personDto.toPerson())
+            "redirect:/auteurs"
+        }
+    }
+----
+
+<1> Appel de la fonction `alreadyLoginExists` (qui doit être définie par le développeur...)
+<2> Dans le cas où le login est déjà pris, on ajoute une erreur à `bindingResult`
+
+=== Présentation des erreurs de niveau entité
+
+Comme les erreurs de niveau entité ne sont pas forcément liées à une seule propriété, le développeur peut les afficher où il le souhaite. Exemple.
+
+[source, html]
+----
+<form ...>
+<div th:if="${#fields.hasGlobalErrors()}" class="p-2" style="border-style: solid; border-color: red">
+  <h5>Erreur de niveau entité</h5>
+  <ol>
+     <item th:each="err : ${#fields.globalErrors()}" th:text="${err}" class="error-input" />
+  </ol>
+</div>
+ ....
+----
 
 == Travaux pratiques
 
