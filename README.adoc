@@ -475,7 +475,7 @@ Exemple
     fun addPerson(@Valid personDto: PersonDto, bindingResult: BindingResult): String {
         if (alreadyLoginExists(personDto.login) { <1>
            bindingResult.reject("", "Le login est déjà pris !") <2>
-           // ou en rapportant l'erreur au niveau de la proporié login
+           // ou en rapportant l'erreur au niveau de la propriété login
            // bindingResult.reject("login", "", "Le login est déjà pris !")
         }
         return if (bindingResult.hasErrors()) {
@@ -506,8 +506,14 @@ Comme les erreurs de niveau entité ne sont pas forcément liées à une seule p
  ....
 ----
 
+Exemple de rendu (niveau entité, global)
+image:docs/login-exists-error-global.png[]
+
+Si le contrôleur a associé l'erreur au niveau de la propriété `login`, le rendu est traité comme les autres erreurs.
+
 Exemple de rendu (niveau property)
 image:docs/login-exists-error.png[]
+
 
 == Travaux pratiques
 
