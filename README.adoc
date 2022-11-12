@@ -476,7 +476,7 @@ Exemple
         if (alreadyLoginExists(personDto.login) { <1>
            bindingResult.reject("", "Le login est déjà pris !") <2>
            // ou en rapportant l'erreur au niveau de la proporié login
-           // bindingResult.reject("", "login", "Le login est déjà pris !")
+           // bindingResult.reject("login", "", "Le login est déjà pris !")
         }
         return if (bindingResult.hasErrors()) {
             "person/form"
@@ -505,6 +505,9 @@ Comme les erreurs de niveau entité ne sont pas forcément liées à une seule p
 </div>
  ....
 ----
+
+Exemple de rendu (niveau property)
+image:docs/login-exists-error.png[]
 
 == Travaux pratiques
 
