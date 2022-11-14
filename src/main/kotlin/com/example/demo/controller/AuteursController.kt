@@ -12,11 +12,12 @@ import org.springframework.web.bind.annotation.GetMapping
 @Controller
 class AuteursController @Autowired constructor(private val personRepository: PersonRepository){
 
-    @GetMapping("/Auteurs")
+    @GetMapping("/auteurs")
     fun index(model: Model): String {
         model["title"] = "Les auteurs"
-        model["articles"] = personRepository.findAll()
-        return "Auteurs/index"
+        model["auteurs"] = personRepository.findAll()
+
+        return "auteur/index"
     }
 
 }
