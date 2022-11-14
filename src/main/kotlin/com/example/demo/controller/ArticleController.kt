@@ -18,15 +18,17 @@ class ArticleController @Autowired constructor(private val articleRepository: Ar
     fun index(model: Model): String {
         model["title"] = "Les articles"
         model["articles"] = articleRepository.findAllByOrderByTitleDesc()
+
         return "article/index"
     }
-    @GetMapping("/details")
+    @GetMapping("/articles/details")
     fun details(model: Model, request: HttpServletRequest, response: HttpServletResponse): String {
         val to = request.getParameter("id") ?: ""
         val id = to.toLong()
         model["title"] = "Les details"
-        model["articles"] = articleRepository.findById(id).get()
-        return "details/index"
+        model["article"] = articleRepository.findById(id).get()
+        model["id"] = id
+        return "article/details"
     }
 
 }
