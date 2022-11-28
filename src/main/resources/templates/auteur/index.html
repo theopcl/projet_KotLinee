@@ -12,11 +12,12 @@
 <div th:replace="fragments/header :: header"/>
 
 <div class="container">
-    <h1 th:text="${title}">Un titre</h1>
+    <h1 th:text="${title}">Un titre</h1><a th:href="@{/addPerson}"> Ajouter</a>
     <hr>
+    <th:block th:each="auteur : ${auteurs}">
 
     <div class="auteurs">
-        <th:block th:each="auteur : ${auteurs}">
+
             <section>
                 <header class="auteur-header">
                     <h2 class="auteur-name" th:text="${auteur.lastname}+' '+${auteur.firstname}"></h2>
