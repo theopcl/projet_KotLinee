@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title th:text="${title}">Titre du document</title>
+    <div th:replace="fragments/header :: header-css"/>
+</head>
+<body>
+<div th:replace="fragments/header :: header"/>
+<div>
+    <h1 th:text="${title}">Un titre</h1>
+    <hr>
+
+    <table class="table">
+        <thead>
+        <tr class="table-light">
+            <th scope="col">Genre</th>
+            <th scope="col">Titre</th>
+            <th scope="col">Nom</th>
+            <th scope="col">Prenom</th>
+            <th scope="col">Date de naissance</th>
+            <th scope="col">Adresse</th>
+            <th scope="col">Ville</th>
+            <th scope="col">Pays</th>
+            <th scope="col">Etat</th>
+            <th scope="col">Departement</th>
+            <th scope="col">Telephone</th>
+            <th scope="col">Email</th>
+            <th scope="col">FeetInches</th>
+            <th scope="col">Centimeters</th>
+            <th scope="col">Kilograms</th>
+            <th scope="col">Pounds</th>
+            <th scope="col">cctype</th>
+            <th scope="col">ccnumber</th>
+            <th scope="col">cvv2</th>
+            <th scope="col">ccexpiress</th>
+            <th scope="col">Latitude</th>
+            <th scope="col">Longitude</th>
+            <th scope="col">Vehicle</th>
+            <th scope="col">Contrainte</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <th:block th:each="client : ${clients}">
+            <span th:if="${client.contrainte == 'Incorrect'}">
+        <tr class="table-danger">
+            <td th:text="${client.gender}">gender</td>
+            <td th:text="${client.title}">title</td>
+            <td th:text="${client.surname}">surname</td>
+            <td th:text="${client.name}">given_name</td>
+            <td th:text="${client.birthday}">birthday</td>
+            <td th:text="${client.streetAddress}">street_address</td>
+            <td th:text="${client.city}">city</td>
+            <td th:text="${client.country}">country</td>
+            <td th:text="${client.state}">state</td>
+            <td th:text="${client.zipCode}">zip_code</td>
+            <td th:text="${client.telephoneNumber}">telephoneNumber</td>
+            <td th:text="${client.email}">email_address</td>
+            <td th:text="${client.feetInches}">feet_inches</td>
+            <td th:text="${client.centimeters}">centimeters</td>
+            <td th:text="${client.kilograms}">kilograms</td>
+            <td th:text="${client.pounds}">pounds</td>
+            <td th:text="${client.ccType}">cctype</td>
+            <td th:text="${client.ccNumber}">ccnumber</td>
+            <td th:text="${client.cvv2}">cvv2</td>
+            <td th:text="${client.ccexpires}">ccexpires</td>
+            <td th:text="${client.latitude}">latitude</td>
+            <td th:text="${client.longitude}">longitude</td>
+            <td th:text="${client.vehicle}">vehicle</td>
+            <td th:text="${client.contrainte}">vehicle</td>
+            <td> <a class="btn btn-danger" th:href="@{/supp(id=${client.id})}" role="button">Supp</a></td>
+        </tr>
+            </span>
+            <span th:if="${client.contrainte == 'Correct'}">
+        <tr class="table">
+            <td th:text="${client.gender}">gender</td>
+            <td th:text="${client.title}">title</td>
+            <td th:text="${client.surname}">surname</td>
+            <td th:text="${client.name}">given_name</td>
+            <td th:text="${client.birthday}">birthday</td>
+            <td th:text="${client.streetAddress}">street_address</td>
+            <td th:text="${client.city}">city</td>
+            <td th:text="${client.country}">country</td>
+            <td th:text="${client.state}">state</td>
+            <td th:text="${client.zipCode}">zip_code</td>
+            <td th:text="${client.telephoneNumber}">telephoneNumber</td>
+            <td th:text="${client.email}">email_address</td>
+            <td th:text="${client.feetInches}">feet_inches</td>
+            <td th:text="${client.centimeters}">centimeters</td>
+            <td th:text="${client.kilograms}">kilograms</td>
+            <td th:text="${client.pounds}">pounds</td>
+            <td th:text="${client.ccType}">cctype</td>
+            <td th:text="${client.ccNumber}">ccnumber</td>
+            <td th:text="${client.cvv2}">cvv2</td>
+            <td th:text="${client.ccexpires}">ccexpires</td>
+            <td th:text="${client.latitude}">latitude</td>
+            <td th:text="${client.longitude}">longitude</td>
+            <td th:text="${client.vehicle}">vehicle</td>
+            <td th:text="${client.contrainte}">vehicle</td>
+            <td> <a class="btn btn-danger" th:href="@{/supp(id=${client.id})}" role="button">Supp</a></td>
+        </tr>
+            </span>
+
+
+        </th:block>
+        </tbody>
+    </table>
+
+</div>
+
+<div th:replace="fragments/footer:: footer"/>
+
+</body>
+</html>
