@@ -1,10 +1,15 @@
 package com.example.demo.controller
 
 import com.example.demo.domain.Client
+import com.example.demo.domain.Marque
+import com.example.demo.domain.Vehicule
 import com.example.demo.repository.ClientRepository
+import com.example.demo.repository.MarqueRepository
+import com.example.demo.repository.VehiculeRepository
 import com.example.demo.service.getAge
 import com.example.demo.service.isFeetInchesEqualCm
 import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVParser
 import org.apache.commons.csv.CSVRecord
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
@@ -15,10 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
-import java.io.File
-import java.io.FileReader
-import java.io.IOException
-import java.io.Reader
+import java.io.*
 import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -27,7 +29,7 @@ import javax.servlet.http.HttpServletResponse
 
 
 @Controller
-class ClientController @Autowired constructor(private val clientRepository: ClientRepository) {
+class ClientController @Autowired constructor(private val clientRepository: ClientRepository, private val vehiculeRepository: VehiculeRepository, private val marqueRepository: MarqueRepository) {
 
     @GetMapping("/")
     fun index(): String {
@@ -43,15 +45,71 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
         }
 
         try {
-            val bytes = file.bytes
+            /*val bytes = file.bytes
             val path = Paths.get("csvRepository//" + file.originalFilename)
-            Files.write(path, bytes)
+            Files.write(path, bytes)*/
+
+            val inputStream: InputStreamReader = InputStreamReader(file.inputStream)
+            val bufferedReader = BufferedReader(inputStream)
+            val aFormat = CSVFormat.DEFAULT.builder()
+                // choix des colonnes
+                .setHeader(
+                    "Number",
+                    "Gender",
+                    "NameSet",
+                    "Title",
+                    "GivenName",
+                    "MiddleInitial",
+                    "Surname",
+                    "StreetAddress",
+                    "City",
+                    "State",
+                    "StateFull",
+                    "ZipCode",
+                    "Country",
+                    "CountryFull",
+                    "EmailAddress",
+                    "Username",
+                    "Password",
+                    "BrowserUserAgent",
+                    "TelephoneNumber",
+                    "TelephoneCountryCode",
+                    "MothersMaiden",
+                    "Birthday",
+                    "TropicalZodiac",
+                    "CCType",
+                    "CCNumber",
+                    "CVV2",
+                    "CCExpires",
+                    "NationalID",
+                    "UPS",
+                    "WesternUnionMTCN",
+                    "MoneyGramMTCN",
+                    "Color",
+                    "Occupation",
+                    "Company",
+                    "Vehicle",
+                    "Domain",
+                    "BloodType",
+                    "Pounds",
+                    "Kilograms",
+                    "FeetInches",
+                    "Centimeters",
+                    "Latitude",
+                    "Longitude"
+                )
+                .setIgnoreHeaderCase(true)
+                .setSkipHeaderRecord(true)
+                .setTrim(true)
+                .build()
+
+            val csvParser = CSVParser(bufferedReader, aFormat)
 
 
-            val fileName = File("csvRepository//" + file.originalFilename)
-            val `in`: Reader = FileReader(fileName)
-            val records: Iterable<CSVRecord> = CSVFormat.EXCEL.withHeader().parse(`in`)
-            for (record in records) {
+//            val fileName = File("csvRepository//" + file.originalFilename)
+//            val `in`: Reader = FileReader(fileName)
+//            val records: Iterable<CSVRecord> = CSVFormat.EXCEL.withHeader().parse(`in`)
+            for (record in csvParser) {
                 val gender = record["Gender"]
                 val title = record["Title"]
                 val name = record["GivenName"]
@@ -77,9 +135,37 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
                 val longitude = record["Longitude"]
                 var contrainte = "Correct"
 
+                val vehicule1 = vehicule.split(" ")
+
+                val annee = vehicule1[0]
+                val marque = vehicule1[1]
+                val modele = vehicule1[2]
+
+                if (!vehiculeRepository.existsVehiculeByAnneeAndModele(annee, modele)) {
+                    vehiculeRepository.save(
+                        Vehicule(annee, modele)
+                    )
+                }
+                if (!marqueRepository.existsMarqueByMarque(marque)) {
+                marqueRepository.save(
+                    Marque(marque)
+                )
+                }
+
+
                 var isContrainte = true
 
-                if (isFeetInchesEqualCm(feetInches, centimeters) && getAge(birthday) && !clientRepository.existsClientByCcexpiresAndCcTypeAndCcNumberAndCvv2(CCExpires,ccType,CCNumber, CVV2)) {
+                if (isFeetInchesEqualCm(
+                        feetInches,
+                        centimeters
+                    ) && getAge(birthday)
+                    && !clientRepository.existsClientByCcexpiresAndCcTypeAndCcNumberAndCvv2(
+                        CCExpires,
+                        ccType,
+                        CCNumber,
+                        CVV2
+                    )
+                ) {
                     isContrainte = false
                 }
 
@@ -121,7 +207,7 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
             }
             redirectAttributes.addFlashAttribute(
                 "message",
-                "You successfully uploaded '" + fileName.absolutePath + "'"
+                "You successfully uploaded '"
             )
         } catch (exception: IOException) {
             redirectAttributes.addFlashAttribute(
