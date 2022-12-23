@@ -133,7 +133,8 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
                 val vehicule = record["Vehicle"]
                 val latitude = record["Latitude"]
                 val longitude = record["Longitude"]
-                var contrainte = "Correct"
+                var contrainte = ""
+
 
                 val vehicule1 = vehicule.split(" ")
 
@@ -153,24 +154,17 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
                 }
 
 
-                var isContrainte = true
 
-                if (isFeetInchesEqualCm(
-                        feetInches,
-                        centimeters
-                    ) && getAge(birthday)
-                    && !clientRepository.existsClientByCcexpiresAndCcTypeAndCcNumberAndCvv2(
-                        CCExpires,
-                        ccType,
-                        CCNumber,
-                        CVV2
-                    )
-                ) {
-                    isContrainte = false
+                if (isFeetInchesEqualCm(feetInches, centimeters) == false) {
+                    contrainte += "TAILLE"
                 }
 
-                if (isContrainte) {
-                    contrainte = "Incorrect"
+                if (getAge(birthday) == false){
+                    contrainte += " AGE"
+                }
+
+                if (clientRepository.existsClientByCcexpiresAndCcTypeAndCcNumberAndCvv2(ccType,CCNumber,CCExpires,CVV2)){
+                    contrainte += " DOUBLON"
                 }
 
                 if (!clientRepository.existsClientByNameAndSurname(name, surname)) {

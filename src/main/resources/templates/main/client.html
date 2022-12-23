@@ -46,7 +46,7 @@
 
         <tbody>
         <th:block th:each="client : ${clients}">
-            <span th:if="${client.contrainte == 'Incorrect'}">
+            <span th:if="${client.contrainte == 'TAILLE' || client.contrainte == ' AGE' || client.contrainte == ' DOUBLON'}">
         <tr class="table-danger">
             <td th:text="${client.gender}">gender</td>
             <td th:text="${client.title}">title</td>
@@ -75,7 +75,7 @@
             <td> <a class="btn btn-danger" th:href="@{/supp(id=${client.id})}" role="button">Supp</a></td>
         </tr>
             </span>
-            <span th:if="${client.contrainte == 'Correct'}">
+            <span th:if="${client.contrainte == ''}">
         <tr class="table">
             <td th:text="${client.gender}">gender</td>
             <td th:text="${client.title}">title</td>
