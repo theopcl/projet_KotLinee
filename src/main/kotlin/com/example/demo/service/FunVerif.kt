@@ -32,13 +32,3 @@ fun isFeetInchesEqualCm(feetInches: String, centimeters: String): Boolean {
     }
     return false
 }
-
-    fun main(vehicle :String) {
-
-        var vehicule = vehicle
-        var delimiter = " "
-
-        val parts = vehicule.split(delimiter)
-
-        print(parts)
-    }

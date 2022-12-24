@@ -93,6 +93,5 @@ data class clientDTO(
     @Size(min=3, max=15)
     val longitude: String = "",
 
-
     val id: Long? = null
 )

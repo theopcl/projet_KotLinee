@@ -1,11 +1,7 @@
 package com.example.demo.controller
 
 import com.example.demo.domain.Client
-import com.example.demo.domain.Marque
-import com.example.demo.domain.Vehicule
 import com.example.demo.repository.ClientRepository
-import com.example.demo.repository.MarqueRepository
-import com.example.demo.repository.VehiculeRepository
 import com.example.demo.service.getAge
 import com.example.demo.service.isFeetInchesEqualCm
 import org.apache.commons.csv.CSVFormat
@@ -29,11 +25,15 @@ import javax.servlet.http.HttpServletResponse
 
 
 @Controller
-class ClientController @Autowired constructor(private val clientRepository: ClientRepository, private val vehiculeRepository: VehiculeRepository, private val marqueRepository: MarqueRepository) {
+class ClientController @Autowired constructor(private val clientRepository: ClientRepository) {
 
     @GetMapping("/")
     fun index(): String {
         return "main/upload"
+    }
+    @GetMapping(value = ["/access-denied"])
+    fun accessDenied(): String {
+        return "/error/access-denied"
     }
 
     @PostMapping("/upload") // //new annotation since 4.3
@@ -43,16 +43,18 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
             redirectAttributes.addFlashAttribute("message", "Please select a file to upload")
             return "redirect:uploadStatus"
         }
+        if (file.contentType != "text/csv") {
+            redirectAttributes.addFlashAttribute(
+                "message",
+                "Mauvais format, utiliser un fichier Csv" + file.contentType
+            )
+            return "redirect:uploadStatus"
+        }
 
         try {
-            /*val bytes = file.bytes
-            val path = Paths.get("csvRepository//" + file.originalFilename)
-            Files.write(path, bytes)*/
-
-            val inputStream: InputStreamReader = InputStreamReader(file.inputStream)
+            val inputStream = InputStreamReader(file.inputStream)
             val bufferedReader = BufferedReader(inputStream)
             val aFormat = CSVFormat.DEFAULT.builder()
-                // choix des colonnes
                 .setHeader(
                     "Number",
                     "Gender",
@@ -106,9 +108,13 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
             val csvParser = CSVParser(bufferedReader, aFormat)
 
 
-//            val fileName = File("csvRepository//" + file.originalFilename)
-//            val `in`: Reader = FileReader(fileName)
-//            val records: Iterable<CSVRecord> = CSVFormat.EXCEL.withHeader().parse(`in`)
+            //val bytes = file.bytes
+            //val path = Paths.get("csvRepository//" + file.originalFilename)
+            // Files.write(path, bytes)
+
+            //val fileName = File("csvRepository//" + file.originalFilename)
+            //val `in`: Reader = FileReader(fileName)
+            //val records: Iterable<CSVRecord> = CSVFormat.EXCEL.withHeader().parse(`in`)
             for (record in csvParser) {
                 val gender = record["Gender"]
                 val title = record["Title"]
@@ -133,40 +139,24 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
                 val vehicule = record["Vehicle"]
                 val latitude = record["Latitude"]
                 val longitude = record["Longitude"]
-                var contrainte = ""
+                var contrainte = "Correct"
 
+                var isContrainte = true
 
-                val vehicule1 = vehicule.split(" ")
-
-                val annee = vehicule1[0]
-                val marque = vehicule1[1]
-                val modele = vehicule1[2]
-
-                if (!vehiculeRepository.existsVehiculeByAnneeAndModele(annee, modele)) {
-                    vehiculeRepository.save(
-                        Vehicule(annee, modele)
+                if (isFeetInchesEqualCm(feetInches, centimeters) && getAge(birthday) &&
+                    !clientRepository.existsClientByCcexpiresAndCcTypeAndCcNumberAndCvv2(
+                        CCExpires,
+                        ccType,
+                        CCNumber,
+                        CVV2
                     )
-                }
-                if (!marqueRepository.existsMarqueByMarque(marque)) {
-                marqueRepository.save(
-                    Marque(marque)
-                )
+                ) {
+                    isContrainte = false
                 }
 
-
-
-                if (isFeetInchesEqualCm(feetInches, centimeters) == false) {
-                    contrainte += "TAILLE"
+                if (isContrainte) {
+                    contrainte = "Incorrect"
                 }
-
-                if (getAge(birthday) == false){
-                    contrainte += " AGE"
-                }
-
-                if (clientRepository.existsClientByCcexpiresAndCcTypeAndCcNumberAndCvv2(ccType,CCNumber,CCExpires,CVV2)){
-                    contrainte += " DOUBLON"
-                }
-
                 if (!clientRepository.existsClientByNameAndSurname(name, surname)) {
                     clientRepository.save(
                         Client(
@@ -193,15 +183,15 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
                             vehicule,
                             latitude,
                             longitude,
-                            contrainte
+                            contrainte,
                         )
                     )
-                }
 
+                }
             }
             redirectAttributes.addFlashAttribute(
                 "message",
-                "You successfully uploaded '"
+                "You successfully uploaded "
             )
         } catch (exception: IOException) {
             redirectAttributes.addFlashAttribute(
@@ -209,16 +199,16 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
                 "erreur le chemin est incorrect"
             )
             exception.printStackTrace()
-        } catch (exception: Exception) {
+        } catch (exception: IllegalArgumentException) {
             redirectAttributes.addFlashAttribute(
                 "message",
                 "Le fichier n'est pas valide !"
             )
             exception.printStackTrace()
-        } catch (exception: IllegalArgumentException) {
+        } catch (exception: Exception) {
             redirectAttributes.addFlashAttribute(
                 "message",
-                "Le fichier n'est pas valide"
+                "Erreur"
             )
             exception.printStackTrace()
         }

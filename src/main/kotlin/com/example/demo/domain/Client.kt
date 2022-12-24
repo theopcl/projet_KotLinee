@@ -36,7 +36,7 @@ class Client(
     @Column(name = "CVV2",unique = false, nullable = false)
     var cvv2: String,
 
-    @Column(name = "CCExpires",unique = false, nullable = false)
+    @Column(name = "CCExpiress",unique = false, nullable = false)
     var ccexpires: String,
 
     @Column(name = "StreetAddress",unique = false, nullable = false)
@@ -77,6 +77,7 @@ class Client(
 
     @Column(name = "Contrainte", nullable = false)
     var contrainte: String,
+
 
 
     @Id @GeneratedValue var id: Long? = null)
