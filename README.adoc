@@ -1,575 +1,538 @@
-:toc:
+= Kot-Line
+:author: Durang Vincent,Dantas Anthony et Pinceel Theo
+:docdate: 2022-10-11
+:asciidoctor-version:1.1
+:description: Realisation du projet Kot-Line
 :icons: font
-:source-highlighter: prettify
-:project_id: demo-spring-boot-kotlin-jpa
-:tabsize: 2
-ifdef::env-github[]
-:tip-caption: :bulb:
-:note-caption: :information_source:
-:important-caption: :heavy_exclamation_mark:
-:caution-caption: :fire:
-:warning-caption: :warning:
-endif::[]
+:listing-caption: Listing
+:toc-title: Les differents processus de conception:
+:toc: left
+:toclevels: 4
 
-= Application support
 
-Une application starter basée sur les guides suivants
+Rapport Durang Vincent,Dantas Anthony et Pinceel Theo +
+Fait le 25/12/2022
+Equipe: CR7BestPlayer
+Depot: https://github.com/theopcl/projet_KotLinee
 
-* https://spring.io/guides/tutorials/spring-boot-kotlin/
-* https://spring.io/guides/gs/accessing-data-mysql/
 
-Une lecture de ces ressources est vivement recommandée.
 
-== Prérequis
+//:source-highlighter: coderay
 
-* Premiers pas réussis en Kotlin
-* Une machine opérationnelle (test de l'application https://github.com/ldv-melun/sbfirst)
-* Avoir réalisé les exercices https://ldv-melun.github.io/sio-slam/sio-component/index-spring-boot.html#_travaux_pratiques_le_contr%C3%B4leur_et_la_vue_initiation[Exercices avec Controleur et Vue]
-* Avoir pris connaissance du chapitre _Introduction à JPA_ du https://ldv-melun.github.io/sio-slam/sio-component/index-spring-boot[support Spring Boot]
-* Disposer d'un serveur Mysql à proximité (plus simplement sur votre machine de dev)
-* Avoir des compétences de bases minimales en HTML/CSS et SQL
+== Les différentes "Entity"
 
-== Les dépendances
+Lors de l'analyse, nous avons appris que Kot-line souhaite mettre plusieurs données précis issues d'un fichier csv dans une base
+de données. Ainsi nous devons procéder à la création des entité "Client",
+"Marque" et "Voiture" (marque et voiture sont créer pour respecter la demande de Kot-line par rapport à son futur projet d'automobile)
+Les données demander sont : genre, titre, nom, prénom, email, date de naissance, num tel, CCType,
+CCNumber, CVV2, CCExpires, adresse physique (plusieurs champs dans le CSV), taille, poids, véhicule, coordonnées GPS.
+l'entité "marque" va prendre que la marque du vehicule qui a été préalablement extrait de vehicule du fichier csv
+meme chose pour l'entité vehicule seulement il y a le modele et l'annee qui est extrait.
+Voici comment sont realiser les entités.
 
-* Maven
-* Spring Boot Starter
-* Thymeleaf
-* Mysql
-* Webjars
-* BootStrap
+L'entité Client:
+```
+package com.example.demo.domain
 
-Basé sur le thème (qu'il faudra personnaliser) : https://getbootstrap.com/docs/5.2/examples/navbar-static/
-
-== Avant de commencer
-
-=== Initialiser la base de données en ligne de commande
-
-Après avoir lancé la commande `mysql` (une application qui se connecte par défaut au serveur mysql de la machine), vous créez une base de données, qui sera exploitée par l'application, ainsi qu'un utilisateur `mysql`.
-
-Dans un second temps, vous (en tant qu'administrateur de bases de données) donnez les droits à l'utilisateur sur la base de données de l'application.
-
-Connectez-vous à MySql en ligne de commande, via la commande `mysql`
-
-.puis inspirez-vous de commandes suivantes pour initialiser une base de données
-[source, mysql]
-----
-mysql> create database db_example; -- Creates the new database
-mysql> create user 'springuser'@'%' identified by 'ThePassword'; -- Creates the user
-mysql> grant all on db_example.* to 'springuser'@'%'; -- Gives all privileges to the new user on the newly created database
-----
-
-=== À faire ultérieurement (sécurité)
-
-En mode production, limiter les droits de l'utilisateur `mysql` sur la base de données de l'application.
-
-[source, sql]
-----
-mysql> grant select, insert, delete, update on db_example.* to 'springuser'@'%';
-----
-
-Voir ici : https://spring.io/guides/gs/accessing-data-mysql/ chapitre, "_Make Some Security Changes_"
-
-== Prise en main
-
-=== application.properties
-
-Après avoir cloné l'application, et avant de lancer l'application, vérifier la conformité du contenu de `src/main/resources/application.properties` qui contient des informations utilisées par votre application pour se connecter à votre base de données créée précédemment.
-
-.src/main/resources/application.properties (extrait)
-[source, properties]
-----
-spring.datasource.url=jdbc:mysql://${MYSQL_HOST:localhost}:3306/db_example <1>
-spring.datasource.username=springuser <2>
-spring.datasource.password=ThePassword <3>
-----
-
-<1> db_example : le nom de la base de données que vous avez créée (à modifier le cas échéant)
-<2> idem pour le compte utilisateur MySQL utilisé par l'application pour se connecter à la base de données.
-<3> mot de passe, en clair, de compte utilisateur MySQL
-
-C'est une bonne chose de tester l'accès à MySql via l'onglet `Database` de l'IDE IntelliJ.
-
-TIP: Le schéma de la base de données, ainsi que ses datas sont consultables directement dans l'IDE, via l'onglet `Database` de la Toolbar. image:docs/jpa-database-ide.png[]
-
-Prendre connaissance de l'impact `spring.jpa.hibernate.ddl-auto=*create*` sur la base de données (puis changer par *update*), et, en particulier, consulter le corps de la méthode  `databaseInitializer()` de la classe `DatabaseInitializer`.
-
-== Le modèle métier
-
-Le domaine métier (du point de vue des utilisateurs de l'application) est définis par un enseble de classes `Entity` placées dans un package à part (très souvent nommé *model* footnote:[Na pas confondre avec la classe `Model` de `MVC` (_Model View Controller_), qui est une classe qui a pour fonction de liaison entre le contrôleur et la vue.]) ou *domain*. Ce sont les données qui font l'objet de persistance dans les bases de données.
-
-[source, kotlin]
-----
-@Entity <1>
-@Table(name = "person")
-class Person(
-
-    @Column(name = "login", unique = true, nullable = false) <2>
-    var login: String,
-
-    @Column(name = "firstname", nullable = false)
-    var firstname: String,
-
-    @Column(name = "lastname", nullable = false)
-    var lastname: String,
-
-    @Column(columnDefinition="TEXT")
-    var description: String? = null,
-
-    @OneToMany(mappedBy = "creditedTo", cascade = [CascadeType.ALL]) <3>
-    var articles: MutableList<Article> = mutableListOf(),
-
-    @Id @GeneratedValue var id: Long? = null) <4>
+import javax.persistence.*
 
 @Entity
-class Article(
-    var title: String, <5>
-    var headline: String,
-    var content: String,
-    @ManyToOne var creditedTo: Person,  <6>
-    var slug: String = title.toSlug(),
-    var addedAt: LocalDateTime = LocalDateTime.now(),
+@Table(name = "Client")
+class Client(
+
+    @Column(name = "Gender", unique = false, nullable = false)
+    var gender: String,
+
+    @Column(name = "Title" ,unique = false, nullable = false)
+    var title: String,
+
+    @Column(name = "GivenName",unique = false, nullable = false)
+    var name: String,
+
+    @Column(name = "Surname",unique = false, nullable = false)
+    var surname: String,
+
+    @Column(name = "EmailAddress",unique = false, nullable = false)
+    var email: String,
+
+    @Column(name = "Birthday",unique = false, nullable = false)
+    var birthday: String,
+
+    @Column(name = "TelephoneNumber",unique = false, nullable = false)
+    var telephoneNumber: String,
+
+    @Column(name = "CCType",unique = false, nullable = false)
+    var ccType: String,
+
+    @Column(name = "CCNumber",unique = false, nullable = false)
+    var ccNumber: String,
+
+    @Column(name = "CVV2",unique = false, nullable = false)
+    var cvv2: String,
+
+    @Column(name = "CCExpires",unique = false, nullable = false)
+    var ccexpires: String,
+
+    @Column(name = "StreetAddress",unique = false, nullable = false)
+    var streetAddress: String,
+
+    @Column(name = "City",unique = false, nullable = false)
+    var city: String,
+
+    @Column(name = "State", nullable = false)
+    var state: String,
+
+    @Column(name = "ZipCode", nullable = false)
+    var zipCode: String,
+
+    @Column(name = "FeetInches", nullable = false)
+    var feetInches: String,
+
+    @Column(name = "Centimeters", nullable = false)
+    var centimeters: String,
+
+    @Column(name = "Country", nullable = false)
+    var country: String,
+
+    @Column(name = "Pounds",nullable = false)
+    var pounds: String,
+
+    @Column(name = "Kilograms", nullable = false)
+    var kilograms: String,
+
+    @Column(name = "Vehicle", nullable = false)
+    var vehicle: String,
+
+    @Column(name = "Latitude", nullable = false)
+    var latitude: String,
+
+    @Column(name = "Longitude", nullable = false)
+    var longitude: String,
+
+    @Column(name = "Contrainte", nullable = false)
+    var contrainte: String,
+
+
     @Id @GeneratedValue var id: Long? = null)
+```
+L'entité "marque" :
+```
+@Entity
+@Table(name = "Marque")
+class Marque(
 
-----
-<1> Désigne cette classe comme Entité, c'est à dire en relation avec une table dans le système de persistance de type SQL
-<2> Donne des informations pour la colonne correspondant à la propriété `login`
-<3> C'est le lien inverse d'une DF déclaré dans l'entité Article.
-<4> Clé primaire
-<5> Le nom de la colonne est directement déduit, par défaut, du nom de la propriété
-<6> Une DF, relation entre entités du modèle. Attention, il n'est pas question ici de PK ni de FK, mais d'un lien entre objets !
-
-[TIP]
-====
-Les autres relations, de type association, entre entités du modèle métier sont :
-
-* `ManyToMany` (Une DMR directe et élémentaire, non porteuse de propriétés),
-* `OneToOne`, (DF directes et élémentaires réciproques)
-* `OneToMany` (Un lien inverse d'une DF directe et élémentaire),
-====
-
-== Le schéma relationnel
-
-Exemple d'ordre SQL de création du schéma de la base de données (opération réalisée par Spring Boot / Hibernate)
-
-[source, sql]
-----
-
-CREATE TABLE `person` (
-  `id` bigint NOT NULL,
-  `description` text,
-  `firstname` varchar(255) NOT NULL,
-  `lastname` varchar(255) NOT NULL,
-  `login` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `UK_3s24xk1o0x58fo2v9gwwvff9w` (`login`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    @Column(name = "marque", unique = false, nullable = false)
+    var marque: String,
 
 
-CREATE TABLE `article` (
-  `id` bigint NOT NULL,
-  `added_at` datetime(6) DEFAULT NULL,
-  `content` varchar(255) DEFAULT NULL,
-  `headline` varchar(255) DEFAULT NULL,
-  `slug` varchar(255) DEFAULT NULL,
-  `title` varchar(255) DEFAULT NULL,
-  `credited_to_id` bigint DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `FKenlp249onbxbxu9okxjyhlym7` (`credited_to_id`),
-  CONSTRAINT `FKenlp249onbxbxu9okxjyhlym7` FOREIGN KEY (`credited_to_id`) REFERENCES `person` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    @Id @GeneratedValue var idMarque: Long? = null)
+```
+L'entité "vehicule":
+```
+@Entity
+@Table(name = "Vehicule")
+class Vehicule(
 
+    @Column(name = "Annee", unique = false, nullable = false)
+    var annee: String,
 
-----
+    @Column(name = "modele" ,unique = false, nullable = false)
+    var modele: String,
 
-[NOTE]
-====
-Le lien `@ManyToOne` de la classe `@Entity` est traduit en une *clé étrangère* dans la table liée à l'entité.
+    @Id @GeneratedValue var id: Long? = null)
+```
+<<<<
+== Upload
 
-Une *FK* (_Foreign Key_) pointe toujours sur une *PK* (_Primary  Key_)
-====
+Pour pouvoir que kot-line puissent realiser un transfert du fichier csv à la bases ,il faut faire
+un systeme d'upload, ainsi nous devons un affichage et faire un systeme d'execption (ex fichier non csv)
+Pour l'affichage nous avons bien evidement utiliser de l'html et thymlaef.
+Premierement, nous avons crée une page html (upload.html) le code est le suivant :
+```
+<h2>File upload</h2>
 
-== Les repositories
+<form method="POST" action="/upload" enctype="multipart/form-data">
+    <input type="file" name="file" /><br/><br/>
+    <input type="submit" value="Submit" />
+</form>
+```
+Affichage dans le navigateur:
 
-Ce sont des interfaces techniques qui se chargent des opérations en liens avec la base de données, opérations d'interrogation (_query_) et d'écriture (_create, update_)
+image::docs\fileUpload.png[]
 
-Les méthodes de ces interfaces sont soit pilotées par le schéma relationnel de la base, et donc exprimées en `SQL` , soit héritées d'interface prévues à cet effet, comme `CrudRepository` par exemple.
+afin de recuperer le fichier choisie ,nous utilisons la methode post, aprés
+le fichier est enregisté dans un valeur qui est transferé dans le ClientController
+vers /uplaod qui utilise un postMapping
 
-.Exemple d'un repository associé à la classe entité `Article`
-[source, kotlin]
-----
+Voici un partie du code:
+```
+@PostMapping("/upload") // //new annotation since 4.3
 
-interface ArticleRepository : CrudRepository<Article, Long> { <1>
-    // ---------------------------------------------------------------
-    // Version Native SQL (dépendance avec le schéma relationnel)
-    // ---------------------------------------------------------------
-
-    @Query(
-        value = "SELECT * FROM article ORDER BY added_at DESC", nativeQuery = true <2>
-    )
-    fun findAllArticlesOrderByAddedAtDesc(): List<Article> <3>
-
-
-    // ---------------------------------------------------------------
-    // Version DSL by Spring Boot (ne dépend que du domaine métier - Entity)
-    // ---------------------------------------------------------------
-
-    fun findBySlug(slug: String): Article? <4>
-    fun findAllByOrderByAddedAtDesc(): Iterable<Article> <5>
-}
-
-----
-<1> Une interface qui hérite de `CrudRepository`, la classe du modèle et le type de la clé primaire sont renseignés. Ainsi, Spring Boot sera en mesure d'*implémenter* automatiquement les méthodes de cette interface `CRUD`. Que de temps gagné pour le développeur !
-<2> Exemple d'usage de SQL pour personnaliser des méthodes d'accès aux données. Très pratique si l'on dispose déjà de requêtes SQL sophistiquées.
-<3> Le nom de la méthode associée à la requête `SQL`
-<4> Inutile ici de coder du SQL ! Spring Boot se chargera de le faire pour vous. Ces *méthodes dérivées* doivent respecter les conventions de nommages et le bon nom des propriétés pour que cela fonctionne, ainsi que les mots clés prévus à cet effet comme `OrderBy`, `Exists`, `GreaterThan`, etc .(voir ici : https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#appendix.query.method.subject[mots clés supportés] et https://docs.spring.io/spring-data/jpa/docs/current/reference/html/[ref manuel]). L'utilisateur est fortement assisté s'il utilise `IntelliJ`.
-<5> Equivalent à `findAllArticlesOrderByAddedAtDesc` déclarée en premier !
-
-
-== Le contrôleur
-
-[source, kotlin]
-----
-@Controller
-class ArticleController @Autowired
-   constructor(private val articleRepository: ArticleRepository){ <1>
-
-    @GetMapping("/articles")
-    fun index(model: Model): String {
-        model["title"] = "Les articles"
-        model["articles"] = articleRepository.findAllArticlesOrderByAddedAtDesc() <2>
-        return "article/index" <3>
+    fun file(@RequestParam("file") file: MultipartFile, redirectAttributes: RedirectAttributes): String {
+        if (file.isEmpty) {
+            redirectAttributes.addFlashAttribute("message", "Please select a file to upload")
+            return "redirect:uploadStatus"
+        }
+...
+ redirectAttributes.addFlashAttribute(
+                "message",
+                "You successfully uploaded '"
+            )
+        } catch (exception: IOException) {
+            redirectAttributes.addFlashAttribute(
+                "message",
+                "erreur le chemin est incorrect"
+            )
+            exception.printStackTrace()
+        } catch (exception: Exception) {
+            redirectAttributes.addFlashAttribute(
+                "message",
+                "Le fichier n'est pas valide !"
+            )
+            exception.printStackTrace()
+        } catch (exception: IllegalArgumentException) {
+            redirectAttributes.addFlashAttribute(
+                "message",
+                "Le fichier n'est pas valide"
+            )
+            exception.printStackTrace()
+        }
+        return "redirect:uploadStatus"
     }
-}
-----
-<1> Injection du repository en tant que propriété de la classe contrôleur
-<2> Appel tous les articles. L'appel de `findAllByOrderByAddedAtDesc` aurait le même résultat
-<3> Désigne le nom de la vue qui sera utilisée ( celui-ci : `src/main/resources/templates/article/index.html`)
 
-== Extrait de la vue de la liste des articles
+```
+Ainsi lors de l'uplaod, nous devons gerer plusieurs cas d'exection
+1. Aucun fichier choisie
+2. Fichier corrompue
+3. Fichier non csv
+4. Mauvais chemin
 
-.src/main/resources/templates/article/index.html
-[source, html]
-----
-<div class="articles">
-    <th:block th:each="article : ${articles}"> <1>
-    <section>
-        <header class="article-header">
-            <h2 class="article-title" th:text="${article.title}"></h2> <2>
-            <div class="article-meta">By
-              <strong th:text="${article.creditedTo.lastname}"></strong>, <3>
-              on <strong> une date </strong></div> <4>
-        </header>
-        <div class="article-description">
-           <p th:text="${article.headline}"></p>
-           <p th:text="${'slug: ' + article.slug}"></p>
-        </div>
-    </section>
-    </th:block>
+Apres selon l'exception un message est enregister dans la valeur message,
+de là suis un redirect vers une autre page (uploadStatus) qui va afficher le message.
+
+```
+<h1>Upload Status</h1>
+
+<div th:if="${message}+' :'">
+  <p th:text="${message}"/>
 </div>
-----
-
-<1> Un _foreach_ en Thymeleaf. L'instruction `th:each="article : ${articles}` déclare une variable de boucle nommée `article`.
-<2> Le titre de chaque article est placé comme contenu de la balise `h2`
-<3> On va chercher le nom de l'auteur (l'objet article est liée à une personne par la propriété `creditedTo`)
-<4> ... Il faudrait placer la date de création de l'article ici ! (voir TP)
-
-== les DTOs
-
-Les DTOs (_Data Transfert Object_) sont des classes qui ont fonction d'être *en première ligne* d'exposition des objets du domaine métier (les entités) lors d'opérations sensibles (création et modification d'état).
-
-Une entité métier (une instance) se doit d'être toujours dans un état cohérent, ce qui n'est pas toujours possible lors d'opérations d'écriture, et c'est encore plus sensible lorsque les données proviennent de l'extérieur.
-
-Une classe DTO se charge alors de prendre tous les risques en représentant une classe Entité. C'est pourquoi de telles classes sont souvent préfixées par le nom de l'entité (Exemple `PersonDto`)
-
-Les classes DTO incluent des déclarations de contraintes qui s'appuie sur des *annotations* (https://jcp.org/en/jsr/detail?id=303[JSR-303 est la référence intiale])
-
-Bean Validation 2.0 est définie par JSR 380 (juillet 2017) et prend en compte les nouvelles caractéristiques de Java 8 (version minimum requise de Java)
-
-S'assurer de la présence de la dépendance dans le `pom.xml` :
-
-[source, xml]
-----
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-validation</artifactId>
-</dependency>
-----
-
-.Exemple d'une classe DTO
-[source, kotlin]
-----
-package com.example.demo.dto
-
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotNull
-import javax.validation.constraints.Size
-
-data class PersonDto(
-
-    @field:NotBlank <1>
-    @field:Size(min=3, max=15) <2>
-    val login: String = "",
-
-    @field:NotBlank
-    @field:Size(min=3, max=30)
-    val firstname: String = "",
-
-    @field:NotBlank
-    @field:Size(min=3, max=30)
-    val lastname: String = "",
-
-    @field:Size(min=0, max=500)
-    val description: String? = null,
-
-    val id: Long? = null
-)
-
-----
-
-<1> Exemple de contrainte portant sur une donnée de type String
-<2> Autre contrainte paramétrée sur le nombre de caractères
-
-TIP: Le fait que les attributs des classes Kotlin sont en fait des properties nous oblige à spécifier la portée de la contrainte, soit `@field:NotBlank` et non `@NotBlank`
-
-.Quelques annotations
-|===
-|Contrainte|Description
-|*@Null* *@NotNull* |L'élément annoté doit être *null* ou *différent de null*
-|*@AssertTrue  @AssertFalse*|L'élément annoté doit être *true* ou *false*
-|*@Min(value)* |L'élément annoté doit être un nombre dont la valeur est supérieure ou égale au minimum spécifié.
-|*@Max(value)* |L'élément annoté doit être un nombre dont la valeur est inférieure ou égale au maximum spécifié. Voir aussi *@DecimalMin*, *@DecimalMax*
-|*@Size(min=, max=)* |L'élément annoté doit être un nombre dont la valeur est dans les bornes spécifiées (inclusives)
-|*@Negative* |L'élément annoté doit être un nombre *strictement négatif* (zéro est considéré comme une valeur invalide). Voir aussi *@NegativeOrZero*, *@Positive*, *@PositiveOrZero*, *@Digits*
-|*@Future* |L'élément annoté doit être un instant, date ou time, dans le futur. Voir aussi *@Past*, *@PastOrPresent*, *@FutureOrPresent*
-|*@Pattern(regexp =)* |L'élément annoté doit être validé par l'expression régulière
-|*@NotEmpty*|L'élément annoté doit être non vide. Type supporté : `CharSequence`, `Collection`, `Map`, `array`
-|*@NotBlank*|L'élément annoté doit être non null et doit contenir au moins un caractère 'non-blanc'. Type supporté : `CharSequence`
-|*@Email*|L'élément annoté (String) doit être une adresse email bine-formée. |
-| | |
-|*@CreditCardNumber* |(hibernate) L'élément annoté représente un numéro de carte de credit. Vérifie selon l'implémentation de l'algorithme Luhn (qui traite de la syntaxe, non de la validité !)
-|===
-
-Voir plus loin ici : https://beanvalidation.org/2.0/spec/#builtinconstraints/[table-builtin-constraints]
-
-== Validation de formulaire
-
-Typiquement, le formulaire HTML est l'outil qui permet à un utilisateur de créer ou modifier une entité du modèle métier.
-
-En cas de saisies de données incorrectes (syntaxe d'un email, valeur d'un nombre, état d'une chaîne de caractères, absence de valeur, date trop courte, etc.), le formulaire doit être représenté à l'utilisateur, avec ses erreurs mises en évidence ainsi que ses valeurs précédemment saisies ou sélectionnées.
-
-Ce traitement recurrent peut ête automatisé à condition de faire travailler de concert le contrôleur et la vue.
-
-=== Le formulaire
-
-Nous utilisons ici des classes `CSS` du bootstrap 5.2.2.
-
-[source, html]
-----
-<form action="#" th:action="@{/addPerson}" <1>
-       th:object="${personDto}" <2>
-       method="post"> <3>
-    <div class="mb-3">
-        <label for="id-login" class="form-label">Login</label>
-        <input type="text" th:field="*{login}" <4>
-           class="form-control" id="id-login" aria-describedby="login person">
-        <div th:if="${#fields.hasErrors('login')}" <5>
-          class="error-input" th:errors="*{login}">Login Error</div>
-        <div id="loginHelp" class="form-text">an original login</div>
-    </div>
-    <div class="mb-3">
-        <label for="idFirstname" class="form-label">Firstname</label>
-        <input type="text" th:field="*{firstname}" class="form-control" id="idFirstname">
-        <div th:if="${#fields.hasErrors('firstname')}" class="error-input" th:errors="*{firstname}">firstname
-            Error
-        </div>
-    </div>
-    <div class="mb-3">
-        <label for="idLastname" class="form-label">Lastname</label>
-        <input type="text" th:field="*{lastname}" class="form-control" id="idLastname">
-        <div th:if="${#fields.hasErrors('lastname')}" class="error-input" th:errors="*{lastname}">lastname Error
-        </div>
-    </div>
-    <div class="mb-3">
-        <label for="idDescription" class="form-label">Description</label>
-        <input type="text" th:field="*{description}" class="form-control" id="idDescription">
-        <div th:if="${#fields.hasErrors('description')}" class="error-input" th:errors="*{description}">description
-            Error
-        </div>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Submit</button>
+<form action= http://localhost:8080/>
+  <button type="submit">Retourner a la page principale</button>
 </form>
 
-----
-<1> Désigne la route cible du formulaire
-<2> Identifie l'objet qui sert de réceptacle des données du formulaire (un DTO). C'est fort pratique, car ainsi le développeur fait l'économie d'extraire une par une les données du formulaire afin de les injecter ensuite dans un objet DTO.
-<3> Les données du formulaire seront transmis dans le corps de la requête HTTP
-<4> Liaison de la donnée du `input` avec une propriété de l'objet DTO.
-<5> Présentation localisée d'erreur(s) éventuelle(s) sur la propriété de l'objet DTO.
+</body>
+</html>
+```
 
-=== Contrôleur de présentation du formulaire
+Affichage dans le navigateur :
 
-Voici une façon de faire, dans sa plus simple expression depuis les dernières versions de Spring Boot.
+image::docs\UplaodStatue.png[]
 
-.Exemple GET `/addPerson`
-[source, kotlin]
-----
-@GetMapping("/addPerson") <1>
-fun showForm(personDto: PersonDto): String { <2>
-    return "person/form" <3>
-}
+Dans l'exemple ci-dessus le message "Please select a file to uplaod" peut changer
+selon exeception.
+Si aucune exeception intervient alors le message est "You successfully uploaded "
+et la lecture csv ce fait
 
-----
+<<<<
+== Lecture csv
 
-<1> Méthode `GET` par défaut (appel du formulaire par le client HTTP distant)
-<2> Le paramètre de type `PersonDto` sera passé à cette fonction au moment de son appel. Cet objet sera, soit créé (la première fois par Spring Boot), soit extrait de l'objet `Model` du contexte d'appel (celui qui fait le lien entre le contrôleur et la vue, et qui est *implicite* ici)
-<3> Le chemin vers la vue (de racine implicite `resources/template/`)
+Pour la lecture du fichier csv, nous utilisons une fonctionnalité de apache.
+Pour lire le fichier, nous prenons comme parametre le fichier choisie par kot-line lors de l'upload
+ensuite, il y est convertie afin de pourvoir le lire par CSVFORMAT plusieurs option sont parametré
+et le choix de colonnes sont fait.
+Aprés, les données sont enregister dans une valeur avec CSVPARSER, et pour finir
+une boucle nous permets d'enregister les valeurs demander par kot-line pour ensuite les traités
+et les envoyer vers la base de donnée.
+```
+ val inputStream: InputStreamReader = InputStreamReader(file.inputStream)
+            val bufferedReader = BufferedReader(inputStream)
+            val aFormat = CSVFormat.DEFAULT.builder()
+// choix des colonnes
+                .setHeader(
+                    "Number",
+                    "Gender",...)
+                 .setIgnoreHeaderCase(true)
+                .setSkipHeaderRecord(true)
+                .setTrim(true)
+                .build()
 
+...
 
-=== Validation du formulaire
+ val csvParser = CSVParser(bufferedReader, aFormat)
+            for (record in csvParser) {
+                val gender = record["Gender"]...
 
-Ce travail doit être réalisé côté serveur footnote:[même si certaines validations peuvent l'être côté client, parfois naïvement], pour une question de sécurité liée au niveau *zéro* de confiance des données d'entrée.
+```
+<<<<
+== Contraintes
 
-IMPORTANT: La leçon la plus importante à retenir concernant la sécurité d'un site web est de ne *jamais faire confiance aux données accompagnant une requête HTTP*. Cela comprend les requêtes GET avec la présence des paramètres dans l'URL, les données envoyées avec les POST, les en-têtes HTTP, les cookies, les fichiers chargés par l'utilisateur, etc. Il faut toujours vérifier et assainir les données. Il faut toujours s'attendre au pire. (voir plus en détail : https://developer.mozilla.org/fr/docs/Learn/Server-side/First_steps/Website_security[https://developer.mozilla.org  Website_security])
+1. Contrainte d'âge
 
-Spring Boot propose de prendre en charge la validation des contraintes déclarées dans les DTOs sous la forme d'annotation (JSR 380). Pour activer ce mécanisme, le développeur annote le paramètre DTO du contrôleur par *`@Valid`*. Exemple.
-
-.Exemple POST `/addPerson`
-[source, kotlin]
-----
-
-@PostMapping("/addPerson") <1>
-fun addPerson(@Valid personDto: PersonDto, <2>
-              bindingResult: BindingResult): String { <3>
-    return if (bindingResult.hasErrors()) { <4>
-        "person/form"
-    } else {
-        personRepository.save(personDto.toPerson()) <5>
-        "redirect:/auteurs" <6>
+Nous avons mis en place une contrainte sur l'âge des clients pour limiter les clients de 18 à 88 ans.
+Pour la mettre en œuvre nous avons dû changer le format de la date de naissance fournit dans le fichier Csv puis nous l'avons comparé
+A la date d'aujourd'hui grâce à la méthode Period.between.
+Après avoir ressorti  l'âge dans une variable nous la soumettons à une vérification grâce à un if qui vérifiera si l'âge est bien compris dans les limites.
+```
+fun getAge(dateNaissance:String):Boolean {
+    val delimiter = "/"
+    val birthday = dateNaissance
+    val ageSplittedTab = birthday.split(delimiter)
+    val age = Period.between(
+        LocalDate.of(ageSplittedTab[2].toInt(), ageSplittedTab[0].toInt(), ageSplittedTab[1].toInt()),
+        LocalDate.now()
+    ).years
+    if (age in 18..88) {
+        return true
     }
+    return false
 }
+```
 
-----
-<1> `POST` par convention
-<2> L'annotation *@Valid* déclenche la validation côté serveur avant l'appel de ce contrôleur. Le paramètre de type `PersonDto` étant préfixé par `@Valid` est l'objet de la validation.
-<3> L'objet de type `BindingResult` détient les erreurs détectées lors du processus de validation. C'est à partir de l'état de cet objet que le développeur décide ou non de retourner le formulaire à l'utilisateur.
-<4> En cas de présence d'erreurs, le formulaire est renvoyé à l'utilisateur, avec les valeurs précédemment renseignées et les messages d'erreurs.
-<5> Si aucune erreur n'est détectée, alors l'entité peut être créée et sauvegardée dans la base de données.
-<6> Une fois réalisée, un ordre de redirection est renvoyé au client distant. C'est un principe de bonne pratique en développement web, qui porte le non de `PRG` pour _Post Redirect Get_.
-+
-TIP: Pour comprendre les problèmes résolus par `PRG`, une recherche sur wikipedia s'impose...
+2. Verification de la correspondance des tailles
 
-.Exemple de retour en <4>
-image:docs/formulaire-erreurs.png[formulaire erreurs]
+Une fonction a été créée pour verifier que la taille dans le fichier csv en cm correspondait à la taille en feet indiquées.
+On décide de convertir la taille en feet en cm grace aux valeurs de conversion officielles?
+Puis nous avons comparé les deux valeurs en cm avec un taux d'acceptation de 1.25cm car la conversion n'est pas très précise.
 
-=== Validation de niveau entité
+```
+fun isFeetInchesEqualCm(feetInches: String, centimeters: String): Boolean {
+    val words: List<String> = feetInches.split(" ")
+    var pied = words[0].substring(0, words[0].length - 1).toInt()
+    var pouce = words[1].substring(0, words[1].length - 1).toInt()
 
-Les contraintes déclaratives (via des annotations) que nous avons présentées sont bien pratiques. Mais elles sont liées à une propriété de l'entité. Il y a des situations qui nécessite de prendre en compte la concordance entre propriétés, ou nécessitant un traitement plus complexe.
+    var feetInchesToCm = ((pied * 30.48) + (pouce * 2.54))
+    var feetInchesInCm =feetInchesToCm
 
-Ce type de validation peut être déporté dans des classes dédiées (de type `Validator`), ou dans de simles fonctions.
+    if (abs(feetInchesInCm-centimeters.toDouble())<1.25) {
+        return true
+    }
+    return false
+}
+```
 
-Exemple
-[source, kotlin]
-----
- @PostMapping("/addPerson")
-    fun addPerson(@Valid personDto: PersonDto, bindingResult: BindingResult): String {
-        if (alreadyLoginExists(personDto.login) { <1>
-           bindingResult.reject("", "Le login est déjà pris !") <2>
-           // ou en rapportant l'erreur au niveau de la propriété login
-           // bindingResult.reject("login", "", "Le login est déjà pris !")
-        }
-        return if (bindingResult.hasErrors()) {
-            "person/form"
+3. Doublons CB
+
+Pour ne pas avoir de doublons de cartes bleues nous avons mit en place la contrainte au niveau de l'upload du fichier en verifiant que tout les criteres d'une
+carte(numero carte,type de la carte,ccv et date d'expiration) ne sont pas deja present dans la base.
+Cette methode a ete créee et generée dans le clientRepository
+
+```
+if(!clientRepository.existsClientByCcexpiresAndCcTypeAndCcNumberAndCvv2(
+                        CCExpires,
+                        ccType,
+                        CCNumber,
+                        CVV2
+                    )
+```
+
+4. Affichage des contraintes
+
+Pour afficher le résultat de nos fonctions nous avons decide de rajouter une colonne dans l'affichage des clients qui affiche la ou les contraintes qui ne sont pas respectees.
+Les lignes ou les contraintes ne seront prise en compte seront affichées en rouge pour faciliter la lecture.
+Pour y arriver la boucle qui permet d'afficher les clients contient deux tableaux un avec un IF qui verifies que les contraintes ne sont pas respectees et l'autre l'inverse,
+le premier sera rouge et l'autre sera avec un css normal.
+
+Tableau rouge :
+```
+<th:block th:each="client : ${clients}">
+<span th:if="${client.contrainte == 'Incorrect'}">
+<tr class="table-danger">
+```
+
+Tableau normal :
+```
+<span th:if="${client.contrainte == 'Correct'}">
+        <tr class="table">
+```
+<<<<
+== Test contraintes
+
+Pour verifier le bon fonctionnement des contraintes nous realisons.
+Test age :
+```
+@Test
+	fun contrainteAgeTest() {
+		/* prendre une date par defaut */
+		val date= "5/23/1974"
+		/* Test pour verifier si la fonction getAge retourne vrai */
+		assertEquals(true, getAge(date))
+
+	}
+```
+
+Test taille:
+```
+@Test
+fun contrainteTailleTest() {
+/* prendre une taille inch et centimetre par defaut */
+val inch= "5' 5\""
+val cent="164"
+/* Test pour verifier si la fonction isFeetInchesEqualCm retourne vrai */
+assertEquals(true, isFeetInchesEqualCm(inch,cent))
+
+	}
+```
+<<<<
+== Injection dans la database
+
+Pour l'injection dans la base de données, nous devons au prealable faire un CrudRepository
+afin de faire le clientRepository, dans celui-ci nous allons faire plusieur requete , la premiere est utiliser pour la suppression
+d'un client, le deuxieme est utilisé pour verifier la presence de l'existence des client dans la base (pour eviter les doublons)
+Et la troisieme deja utiliser lors de la contrainte des double carte bancaire.
+
+Voici le code :
+
+```
+interface ClientRepository : CrudRepository<Client, Long> {
+    override fun deleteById(id: Long)
+    fun existsClientByNameAndSurname(name :String, surname:String): Boolean
+    fun existsClientByCcexpiresAndCcTypeAndCcNumberAndCvv2(ccexpires: String,ccType: String,ccNumber: String,cvv2: String ): Boolean
+}
+```
+
+Apres la verification des contraintes , nous controlons si il y a pas
+de doublon (client deja dans la base). Une condition est faite , si celle-ci est respecter un save est fait.
+
+```
+if (!clientRepository.existsClientByNameAndSurname(name, surname)) {
+                    clientRepository.save(
+                        Client(
+                            gender,
+                            title,...
+                            )
+```
+<<<<
+== Habilitation
+
+L'habilitation va permettre à kot-line de controler les individus ayant la permission
+d'uplaod un fichier ou supprimer un client.
+
+Pour cela nous avons utiliser httpSecurity, pour créer deux sorte d'utilisateur ADMIN et USER,
+ainsi nous pouvons faire un systeme de mot de passe.
+
+Voici l'extrait du code pour gerer l'Access :
+
+```
+class CustomAccessDeniedHandler : AccessDeniedHandler {
+    var logger = LoggerFactory.getLogger(CustomAccessDeniedHandler::class.java)
+
+    @Throws(IOException::class, ServletException::class)
+    override fun handle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        exc: AccessDeniedException) {
+        val auth = SecurityContextHolder.getContext().authentication
+        if (auth != null) {
+            logger.warn("User: " + auth.name
+                    + " attempted to access the protected URL: "
+                    + request.requestURI)
+
         } else {
-            personRepository.save(personDto.toPerson())
-            "redirect:/auteurs"
+            logger.info("Access denied to " + request.requestURI)
         }
+        response.sendRedirect(request.contextPath + "/access-denied")
     }
-----
+}
+```
 
-<1> Appel de la fonction `alreadyLoginExists` (qui doit être définie par le développeur...)
-<2> Dans le cas où le login est déjà pris, on ajoute une erreur à `bindingResult`
+Voici le code nous permettant de gerer les permissions:
 
-=== Présentation des erreurs de niveau entité
+```
+@Configuration
+class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
 
-Comme les erreurs de niveau entité ne sont pas forcément liées à une seule propriété, le développeur peut les afficher où il le souhaite. Exemple.
+    override fun configure(http: HttpSecurity) {
+        http
+            //.csrf().disable()
+            .authorizeRequests()
+            .antMatchers("/").permitAll()
+            .antMatchers("/client").permitAll()
+            .antMatchers("/supp").permitAll()
+            .antMatchers("/uploadStatus").permitAll()
+            .antMatchers("/upload").permitAll()
+            .antMatchers(HttpMethod.POST, "/upload").permitAll()
+            //.anyRequest().authenticated()
+            .antMatchers("/client").hasRole("ADMIN")
+            .anyRequest().authenticated()
+            .and()
+            .formLogin()
+            .permitAll()
+            .and()
+            .logout()
+            .logoutRequestMatcher(AntPathRequestMatcher("/logout"))
+            .and()
+            .exceptionHandling().accessDeniedHandler(accessDeniedHandler())
 
-[source, html]
-----
-<form ...>
-<div th:if="${#fields.hasGlobalErrors()}" class="p-2" style="border-style: solid; border-color: red">
-  <h5>Erreur de niveau entité</h5>
-  <ol>
-     <item th:each="err : ${#fields.globalErrors()}" th:text="${err}" class="error-input" />
-  </ol>
-</div>
- ....
-----
+    }
+    @Bean
+    fun accessDeniedHandler(): AccessDeniedHandler {
+        return CustomAccessDeniedHandler()
+    }
 
-Exemple de rendu (niveau entité, global)
-image:docs/login-exists-error-global.png[]
+    override fun configure(auth: AuthenticationManagerBuilder) {
+        val passwordEncoder: PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
 
-Si le contrôleur a associé l'erreur au niveau de la propriété `login`, le rendu est traité comme les autres erreurs.
+        auth
+            .inMemoryAuthentication()
+            .withUser("user")
+            .password(passwordEncoder.encode("1234"))
+            .roles("USER")
+            .and()
+            .withUser("gestionnaire")
+            .password(passwordEncoder.encode("1234"))
+            .roles("USER", "ADMIN")
+    }
 
-Exemple de rendu (niveau property)
-image:docs/login-exists-error.png[]
+    fun addCorsMappings(registry: CorsRegistry) {
+        registry.addMapping("/**").allowedOrigins("*")
+    }
+}
+```
+<<<<
+== Consultation des données client
+
+Aprés que toutes les étapes précédent sont bien realiser et
+que toutes les donnes sont dans la bases, il faut les afficher.
+
+Nous avons créér une page client et un contoller.
+Le controller (/client) va prendre les informations de la base et les
+mettre dans un model grace au repository , ceci nous permet ensuite de faire
+une boucle dans la vue pour afficher les clients.
+
+Voici le controller client :
+
+```
+ @GetMapping("/client")
+    fun client(model: Model): String {
+        model["title"] = "Client"
+        model["clients"] = clientRepository.findAll()
+        return "main/client"
+    }
+```
+
+et voici l'affichage sur navigateur :
 
 
-== Travaux pratiques
+image::docs\PageClient.png[]
 
-Il est temps de mettre en pratique l'ensemble assez riche des concepts fondamentaux en développement web présentés dans cette section !
 
-====
-[start=1]
-. Modifier la barre de navigation afin de ne montrer que les commandes suivantes :  `Articles`, `Auteurs`, `À Propos`
-====
 
-====
-[start=2]
-. Faire en sorte que la liste des articles soit présentées par ordre FIFO.
-====
+Pour le fonctionnement du bouton supp, nous avons fait un autre controller qui
+lance une requete de suppression.
 
-====
-[start=3]
-. Sur la page d'index des articles, ajouter, à chacune des fiches article, un lien permettant à l'utilisateur de visualiser le détail de cet article (tous ses champs, sauf l'id). Prévoir une nouvelle méthode contrôleur dans la classe `ArticleController`, et une vue associée. (le formatage de la date peut être réalisé en `thymleaf` avec la classe utilitaire `#temporals` - consulter la documentation sur le net - https://stackoverflow.com/questions/39860643/formatting-date-in-thymeleaf[stackoverflow])
-====
+Le code du controller supp :
+```
+@GetMapping("/supp")
+    fun suppClient(model: Model, request: HttpServletRequest, responce: HttpServletResponse): String {
+        var id = request.getParameter("id").toLong()
+        clientRepository.deleteById(id)
+        return "redirect:/client"
+    }
+}
+```
+La ligne qui intervient dans la vue :
 
-====
-[start=4]
-. Faire en sorte que la commande `Auteurs` présente la liste des auteurs. Prévoir une nouvelle classe contrôleur, nommée `PersonController` et une nouvelle vue associée (à placer dans le bon dossier)
-====
-
-====
-[start=5]
-. Permettre à l'utilisateur de créer une personne (via un lien dans la vue `Liste des auteurs`), et prévoir une nouvelle méthode dans `PersonController` qui renvoie à une vue formulaire. Attention, le login d'un utilisateur doit être unique (clé candidate). La soumission du formulaire de création se fera par la commande HTTP `POST`.
-====
-
-====
-[start=6]
-. Dans la liste des auteurs, indiquer en face de chaque auteur le nombre d'articles le concernant.
-====
-
-====
-[start=7]
-. Ajouter la propriété `QItem` à la classe `Person` (type `String`). Cette propriété est un identifiant d'entité de *wikidata* (_Wikidata is a free and open knowledge base that can be read and edited by both humans and machines. Wikidata acts as central storage for the structured data of its Wikimedia sister projects including Wikipedia, Wikivoyage, Wiktionary, Wikisource, and others._)
-+
-Si la propriété `QItem` de wikidata d'une personne est renseignée, alors faire en sorte que le client HTTP affiche la photo de cette personne dans la vue détaillée. Une implémentation en *JavaScript* est attendue.
-+
-TIP: Le travail est ainsi délégué au client : c'est lui qui consommera l'énergie électrique et la bande passante nécessaire à cette fonction.
-+
-Ressources à exploiter :
-
-** L'algorithme d'affichage d'une image via l'API de wikidata : https://stackoverflow.com/questions/34393884/how-to-get-image-url-property-from-wikidata-item-by-api[stackoverflow - how-to-get-image-url-property-from-wikidata-item-by-api]
-** https://m.wikidata.org/wiki/Wikidata:Main_Page[Search page de wikidata], à tester avec `Barbara Liskov`, vous obtenez le QItem suivant : `Q16080922`. Ensuite les étapes suivantes sont à programmer côté client en JS.
-
-.. Obtenir (appel de type AJAX) les informations sur une image possible de la personne (property 18) : https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P18&entity=Q16080922[]
-.. Obtenir le md5 du nom de l'image (remplacer les espaces par `_`). Pour la logique côté client, en JS, voir  https://cdn.jsdelivr.net/npm/md5-js-tools@1.0.2/lib/md5.min.js[function md5.min.js]. Vous pouvez comparer avec le   https://www.md5.cz/[md5 en ligne]
-.. Ajouter au DOM une balise `img` avec comme valeur de `src` l'URL construite selon l'algorithme préconisé par la réponse de _Termininja_ sur stackoverflow.
-
-====
-
-====
-[start=8]
-. (Optionnel) Proposer à l'utilisateur de modifier les caractéristiques d'une personne.
-====
+```
+<td> <a class="btn btn-danger"th:href="@{/supp(id=${client.id})}" role="button">Supp</a></td>
+```
 
