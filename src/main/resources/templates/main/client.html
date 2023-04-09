@@ -5,6 +5,8 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" th:href="@{/css/styles.css}" href="../static/css/styles.css" />
+
     <title th:text="${title}">Titre du document</title>
     <div th:replace="fragments/header :: header-css"/>
 </head>
@@ -17,7 +19,9 @@
     <table class="table">
         <thead>
         <tr class="table-light">
-            <th scope="col">Genre</th>
+            <th scope="col"></th>
+            <th scope="col"classe="sup">Contrainte</th>
+            <th scope="col"classe="sup">Genre</th>
             <th scope="col">Titre</th>
             <th scope="col">Nom</th>
             <th scope="col">Prenom</th>
@@ -40,15 +44,17 @@
             <th scope="col">Latitude</th>
             <th scope="col">Longitude</th>
             <th scope="col">Vehicle</th>
-            <th scope="col">Contrainte</th>
+
         </tr>
         </thead>
 
         <tbody>
         <th:block th:each="client : ${clients}">
-            <span th:if="${client.contrainte == 'TAILLE' || client.contrainte == ' AGE' || client.contrainte == ' DOUBLON'}">
+            <span th:if="${client.contrainte == 'Taille' || client.contrainte == ' Age' || client.contrainte == ' Doublon'}">
         <tr class="table-danger">
-            <td th:text="${client.gender}">gender</td>
+            <td> <a class="btn btn-danger" th:href="@{/supp(id=${client.id})}" role="button">Supp</a></td>
+            <td class="sup" th:text="${client.contrainte != '' ? client.contrainte : 'Aucune'}">Contrainte</td>
+            <td class="sup" th:text="${client.gender}">gender</td>
             <td th:text="${client.title}">title</td>
             <td th:text="${client.surname}">surname</td>
             <td th:text="${client.name}">given_name</td>
@@ -71,13 +77,14 @@
             <td th:text="${client.latitude}">latitude</td>
             <td th:text="${client.longitude}">longitude</td>
             <td th:text="${client.vehicle}">vehicle</td>
-            <td th:text="${client.contrainte}">vehicle</td>
-            <td> <a class="btn btn-danger" th:href="@{/supp(id=${client.id})}" role="button">Supp</a></td>
+
         </tr>
             </span>
             <span th:if="${client.contrainte == ''}">
         <tr class="table">
-            <td th:text="${client.gender}">gender</td>
+            <td> <a class="btn btn-danger" th:href="@{/supp(id=${client.id})}" role="button">Supp</a></td>
+            <td class="sup" th:text="${client.contrainte != '' ? client.contrainte : 'aucune'}">Contrainte</td>
+            <td class="sup" th:text="${client.gender}">gender</td>
             <td th:text="${client.title}">title</td>
             <td th:text="${client.surname}">surname</td>
             <td th:text="${client.name}">given_name</td>
@@ -100,8 +107,8 @@
             <td th:text="${client.latitude}">latitude</td>
             <td th:text="${client.longitude}">longitude</td>
             <td th:text="${client.vehicle}">vehicle</td>
-            <td th:text="${client.contrainte}">vehicle</td>
-            <td> <a class="btn btn-danger" th:href="@{/supp(id=${client.id})}" role="button">Supp</a></td>
+
+
         </tr>
             </span>
 

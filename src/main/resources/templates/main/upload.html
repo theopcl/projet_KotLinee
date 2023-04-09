@@ -11,15 +11,20 @@
 
 <body>
 <div th:replace="fragments/header :: header"/>
-<h2>File upload</h2>
+<div class="container">
+    <h2 class="my-4">File upload</h2>
 
-<form method="POST" action="/upload" enctype="multipart/form-data">
-    <input type="hidden"
-           th:name="${_csrf.parameterName}"
-           th:value="${_csrf.token}" />
-    <input type="file" name="file" /><br/><br/>
-    <input type="submit" value="Submit" />
-</form>
+    <form method="POST" action="/upload" enctype="multipart/form-data" class="bg-light p-4 rounded">
+        <input type="hidden"
+               th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}" />
+        <div class="mb-3">
+            <label for="file" class="form-label">Choose a file:</label>
+            <input class="form-control" type="file" name="file" id="file" />
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
 <div th:replace="fragments/footer:: footer"/>
 </body>
 </html>

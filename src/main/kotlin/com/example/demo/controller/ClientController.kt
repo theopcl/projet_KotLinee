@@ -216,7 +216,7 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
             }
             redirectAttributes.addFlashAttribute(
                 "message",
-                "You successfully uploaded '"
+                "You successfully uploaded"
             )
         } catch (exception: IOException) {
             redirectAttributes.addFlashAttribute(
@@ -243,7 +243,7 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
 
     @GetMapping("/client")
     fun client(model: Model): String {
-        model["title"] = "Client"
+        model["title"] = "Liste des clients"
         model["clients"] = clientRepository.findAll()
         return "main/client"
     }
