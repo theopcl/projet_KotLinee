@@ -14,8 +14,42 @@
 <div class="container">
 <h1 th:text="${title}">Un titre</h1>
 </div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemple Bootstrap</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0pK" crossorigin="anonymous">
+</head>
+<body>
+<div class="container mt-5">
+    <h2 id="_contexte">1. Contexte</h2>
+    <div class="sectionbody">
+        <div class="paragraph">
+            <p>La société de service SO-DEV dans laquelle vous travaillez a comme client l'entreprise Kot-Line, créatrice de ligne de vêtements.</p>
+        </div>
+        <div class="paragraph">
+            <p>La société Kot-Line reçoit de la part de ses partenaires, tous les mois, 2 fichiers clients au format <a href="https://fr.wikipedia.org/wiki/Comma-separated_values"><code>CSV</code></a>.</p>
+        </div>
+        <div class="paragraph">
+            <p>Afin d'exploiter ces fichiers partenaires, Kot-Line souhaite disposer d'un outil (une application web), disponible qu'aux gestionnaires, lui permettant d'intégrer les données de ces fichiers dans une base de données relationnelle.</p>
+        </div>
+        <div class="paragraph">
+            <p>L'entreprise Kot-Line envisage de se lancer dans des produits en liens avec l'automobile.</p>
+        </div>
+        <div class="paragraph">
+            <p>Le département R&amp;D vous demande de concevoir un premier prototype d'application.</p>
+        </div>
+    </div>
 
-<div th:replace="fragments/footer:: footer"/>
+
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0pK" crossorigin="anonymous"></script>
+
+                <div th:replace="fragments/footer:: footer"/>
 
 </body>
 </html>

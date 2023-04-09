@@ -32,8 +32,17 @@ import javax.servlet.http.HttpServletResponse
 class ClientController @Autowired constructor(private val clientRepository: ClientRepository, private val vehiculeRepository: VehiculeRepository, private val marqueRepository: MarqueRepository) {
 
     @GetMapping("/")
+    fun homepage(model: Model): String {
+        model["title"] = "Hello world !"
+        return "main/index"
+    }
+    @GetMapping("/uploadFile")
     fun index(): String {
         return "main/upload"
+    }
+    @GetMapping("/login")
+    fun login(): String {
+        return "fragments/login"
     }
 
     @PostMapping("/upload") // //new annotation since 4.3
@@ -43,7 +52,13 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
             redirectAttributes.addFlashAttribute("message", "Please select a file to upload")
             return "redirect:uploadStatus"
         }
-
+        if (file.contentType != "text/csv") {
+            redirectAttributes.addFlashAttribute(
+                "message",
+                "Mauvais format, veuillez utiliser un format de fichier en .csv et non un fichier :" + file.contentType
+            )
+            return "redirect:uploadStatus"
+        }
         try {
             /*val bytes = file.bytes
             val path = Paths.get("csvRepository//" + file.originalFilename)
