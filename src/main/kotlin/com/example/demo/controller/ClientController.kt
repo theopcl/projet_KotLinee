@@ -33,7 +33,7 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
 
     @GetMapping("/")
     fun homepage(model: Model): String {
-        model["title"] = "Hello world !"
+        model["title"] = "Kot-Line"
         return "main/index"
     }
     @GetMapping("/uploadFile")
