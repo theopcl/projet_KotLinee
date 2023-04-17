@@ -254,58 +254,49 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
         clientRepository.deleteById(id)
         return "redirect:/client"
     }
-    fun getAgeWithPercentage(birthDates: List<String>): Double {
-        val total = birthDates.size
-        val countTrue = birthDates.count { getAge(it) }
-        return (countTrue.toDouble() / total) * 100
-    }
-    fun isFeetInchesEqualCmWithPercentage(heightData: List<Pair<String, String>>): Double {
-        val totalCount = heightData.size
+    fun testGetAgeWithPercentage(clientRepository: ClientRepository): Double {
+        val clients = clientRepository.findAll()
+        val totalClients = clients.count()
         var trueCount = 0
 
-        heightData.forEach { (feetInches, centimeters) ->
-            if (isFeetInchesEqualCm(feetInches, centimeters)) {
+        for (client in clients) {
+            if (getAge(client.birthday)) {
                 trueCount++
             }
         }
 
-        return (trueCount.toDouble() / totalCount) * 100
+        return (trueCount.toDouble() / totalClients) * 100
     }
 
-
-    @GetMapping("/testGetAgeWithPercentage")
-    fun testGetAgeWithPercentage(model: Model): String {
-        // Récupérer les clients de la base de données
+    fun testIsFeetInchesEqualCmWithPercentage(clientRepository: ClientRepository): Double {
         val clients = clientRepository.findAll()
-        val numberOfClients = clients.count()
+        val totalClients = clients.count()
+        var trueCount = 0
 
-        // Extraire les dates de naissance des clients
-        val birthDates = clientRepository.findAll().map { it.birthday }
+        for (client in clients) {
+            if (isFeetInchesEqualCm(client.feetInches, client.centimeters.toString())) {
+                trueCount++
+            }
+        }
 
-        val percentage = getAgeWithPercentage(birthDates)
-        println("Le pourcentage de 'true' est de: $percentage%")
-
-        // Ajouter le pourcentage au modèle
-        model["percentage"] = percentage
-        model["numberOfClients"] = numberOfClients
-        // Renvoyer le nom du modèle
-        return "main/testGetAgeWithPercentage"
+        return (trueCount.toDouble() / totalClients) * 100
     }
-    @GetMapping("/testIsFeetInchesEqualCmWithPercentage")
-    fun testIsFeetInchesEqualCmWithPercentage(model: Model): String {
-        // Récupérer les clients de la base de données
-        val clients = clientRepository.findAll()
-        val numberOfClients = clients.count()
-        // Extraire les FeetInches et Centimeters des clients
-        val heightData = clients.map { Pair(it.feetInches, it.centimeters) }
 
-        val percentage = isFeetInchesEqualCmWithPercentage(heightData)
-        println("Le pourcentage de 'true' est de: $percentage%")
 
-        // Ajouter le pourcentage au modèle
-        model["percentage"] = percentage
+    @GetMapping("/methodes")
+    fun methodes(model: Model): String {
+        val percentageAge = testGetAgeWithPercentage(clientRepository)
+        val percentageFeetInches = testIsFeetInchesEqualCmWithPercentage(clientRepository)
+        val numberOfClients = clientRepository.findAll().count()
+
+        model["title"] = "Résultats des tests"
+        model["percentageAge"] = percentageAge
+        model["percentageFeetInches"] = percentageFeetInches
         model["numberOfClients"] = numberOfClients
-        // Renvoyer le nom du modèle
-        return "main/testIsFeetInchesEqualCm"
+
+        return "main/methodes"
     }
+
+
+
 }
