@@ -37,11 +37,13 @@ class ClientController @Autowired constructor(private val clientRepository: Clie
         return "main/index"
     }
     @GetMapping("/uploadFile")
-    fun index(): String {
+    fun index(model: Model): String {
+        model["title"] = "uploadFile"
         return "main/upload"
     }
     @GetMapping("/login")
-    fun login(): String {
+    fun login(model: Model): String {
+        model["title"] = "login"
         return "fragments/login"
     }
 

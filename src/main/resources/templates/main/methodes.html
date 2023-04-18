@@ -7,20 +7,41 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title th:text="${title}">Titre du document</title>
   <div th:replace="fragments/header :: header-css"/>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
 <div th:replace="fragments/header :: header"/>
 
-<div class="container">
-  <h1>Clients testés: <span class="border border-primary" th:text="${numberOfClients}"></span></h1>
+<div class="container mt-5">
+  <h1 class="mb-4">Clients testés: <span class="badge badge-primary" th:text="${numberOfClients}"></span></h1>
 
-
-  <h3>Le pourcentage toléré par la méthode getAge :</h3>
-  <h4><span th:text="${percentageAge}">0</span>%</h4>
-
-  <h3>Le pourcentage toléré par la méthode isFeetInchesEqualCm :</h3>
-  <h4><span th:text="${percentageFeetInches}">0</span>%</h4>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h4>Le pourcentage toléré par la méthode<br>getAge :</h4>
+        </div>
+        <div class="card-body">
+          <h5><i>getAge()</i> : </h5>
+          <h4><span class="badge badge-success"><span th:text="${percentageAge}">0</span> %</span></h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h4>Le pourcentage toléré par la méthode<br>isFeetInchesEqualCm :</h4>
+        </div>
+        <div class="card-body">
+          <h5><i>isFeetInchesEqualCm()</i> : </h5>
+          <h4><span class="badge badge-success"><span th:text="${percentageFeetInches}">0</span> %</span></h4>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
 </body>
 </html>

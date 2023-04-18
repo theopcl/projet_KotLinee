@@ -23,6 +23,7 @@ class WebSecurityConfiguration : WebSecurityConfigurerAdapter() {
             //.csrf().disable()
             .authorizeRequests()
             .antMatchers("/").permitAll()
+            .antMatchers("/methodes").permitAll()
             .antMatchers("/client").hasRole("USER")
             .antMatchers("/supp").hasRole("ADMIN")
             .antMatchers("/uploadStatus").hasRole("ADMIN")
